@@ -1,59 +1,71 @@
 {% load static %}
 
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-
-	  <!-- Required meta tags -->
+    <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
-   <style>
-    body{
-      background: url('{% static "recognition/img/bg_image.png"%}') no-repeat center center fixed;
-      background-size: cover;
-      
-    }
-   
-   </style>
+    <style>
+        body {
+            background: url('{% static "recognition/img/bg_image.jpg" %}') no-repeat center center fixed;
+            background-size: cover;
+        }
 
+        .header-container, .content-container {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 2em 1em;
+            color: #fff;
+            border-radius: 10px;
+            box-shadow: 2px 2px 15px rgba(0, 3, 0, 0.7);
+            margin: 1em auto;
+            max-width: 900px; /* Set a max width for better readability */
+        }
 
-	
+        .header-container a {
+            color: #fff; /* Ensure the link text is white */
+            text-decoration: none; /* Remove underline */
+        }
+
+        .header-container h5 {
+            margin: 0; /* Remove default margin for better alignment */
+        }
+
+        .alert-container {
+            margin-top: 50px; /* Space above alerts */
+        }
+
+        img {
+            display: block; /* Center the image */
+            margin: 0 auto; /* Center the image horizontally */
+            max-width: 100%; /* Ensure the image is responsive */
+            height: auto; /* Maintain aspect ratio */
+        }
+    </style>
 </head>
 <body>
 
-<div class="col-lg-12" style="background: rgba(0,0,0,0.6);max-height: 20px ; padding-top:1em;padding-bottom:3em;color:#fff;border-radius:10px;-webkit-box-shadow: 2px 2px 15px 0px rgba(0, 3, 0, 0.7);
--moz-box-shadow:    2px 2px 15px 0px rgba(0, 3, 0, 0.7);
-box-shadow:         2px 2px 15px 0px rgba(0, 3, 0, 0.7); margin-left:auto; margin-right: auto; ">
+    <div class="header-container text-center">
+        <a href="{% url 'dashboard' %}"><h5>Back</h5></a>
+    </div>
 
-  <a href="{% url 'dashboard' %}"><h5 class="text-left">  Back</h5></a>
-</div>
+    <div class="content-container text-center">
+        <img src="{% static 'recognition/img/training_visualisation.png' %}" alt="Training Visualization" />
+    </div>
 
- <div class="col-lg-4" style="background: rgba(0,0,0,0.6);margin-top:150px ; padding-top:1em;padding-bottom:3em;color:#fff;border-radius:10px;-webkit-box-shadow: 2px 2px 15px 0px rgba(0, 3, 0, 0.7);
--moz-box-shadow:    2px 2px 15px 0px rgba(0, 3, 0, 0.7);
-box-shadow:         2px 2px 15px 0px rgba(0, 3, 0, 0.7); margin-left:auto; margin-right: auto; ">
+    <div class="alert-container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    </div>
 
-
- 
-
- <img src="{% static 'recognition/img/training_visualisation.png' %}" style="width:900px; margin-right: auto; margin-left: auto;"/>
-</div>
-<div class="col-lg-12" style="padding-top: 100px;">
- {% if messages %}
-      {% for message in messages%}
-      <div class="alert alert-{{message.tags}}" > {{message}}
-      </div>
-      {%endfor %}
-
-    {%endif%}
-  </div>
-
-
-  <!-- Optional JavaScript -->
+    <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>

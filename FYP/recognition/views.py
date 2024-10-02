@@ -636,18 +636,28 @@ def mark_your_attendance(request):
 					print(pred, present[pred], count[pred])
 				cv2.putText(frame, str(person_name)+ str(prob), (x+6,y+h-6), cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,255,0),1)
 
-                # Create a black background image with larger dimensions
+                # Define the background color and create the background image
 				background_color = (0, 0, 0)
-				background_image = np.full((150, 700, 3), background_color, dtype=np.uint8)
+				background_image = np.full((150, 900, 3), background_color, dtype=np.uint8)
 
-                # Add text to the image
+				# Add text to the image
 				font = cv2.FONT_HERSHEY_SIMPLEX
-				text = "Hi " + person_name.title() + ". Your Attendance-In is marked"  # Modify this text as needed
+				text_lines = [
+					"Hi " + person_name.title() + ". " + "Your Attendance Check-In is marked.",
+					"Please press q to exit."
+				]  # List of text lines to draw
 				text_color = (255, 255, 255)  # White color for the text
-				text_size = cv2.getTextSize(text, font, 1, 2)[0]
-				text_x = (background_image.shape[1] - text_size[0]) // 2
-				text_y = (background_image.shape[0] + text_size[1]) // 3
-				cv2.putText(background_image, text, (text_x, text_y), font, 1, text_color, 2, cv2.LINE_AA)
+
+				# Initial vertical position for the first line of text
+				text_y = 50  # Start drawing the first line at y = 50
+
+				# Draw each line of text
+				for line in text_lines:
+					text_size = cv2.getTextSize(line, font, 1, 2)[0]
+					text_x = (background_image.shape[1] - text_size[0]) // 2  # Center the text horizontally
+					cv2.putText(background_image, line, (text_x, text_y), font, 1, text_color, 2, cv2.LINE_AA)
+					text_y += text_size[1] + 10  # Update y position for the next line (adding a gap of 10 pixels)
+
 
                 # Display the image in a window for 10 seconds
 				cv2.imshow("Face Detected", background_image)
@@ -769,35 +779,37 @@ def mark_your_attendance_out(request):
 					count[pred] = count.get(pred,0) + 1
 					print(pred, present[pred], count[pred])
 				cv2.putText(frame, str(person_name)+ str(prob), (x+6,y+h-6), cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,255,0),1)
-				cv2.waitKey(5000)
 
-				# Show the face detected message for 2 seconds (2000 milliseconds)
-                # Display the detected face with the name for 10 seconds
-				cv2.imshow("Detected Face - " + person_name, cv2.resize(face_aligned, (300, 300)))  # Resize the window to 300x300
-				cv2.waitKey(5000)
-				cv2.destroyWindow("Detected Face - " + person_name)
-
-                # Create a black background image with larger dimensions
+ 				# Define the background color and create the background image
 				background_color = (0, 0, 0)
-				background_image = np.full((150, 700, 3), background_color, dtype=np.uint8)
+				background_image = np.full((150, 900, 3), background_color, dtype=np.uint8)
 
-                # Add text to the image
+				# Add text to the image
 				font = cv2.FONT_HERSHEY_SIMPLEX
-				text = "Bye " + person_name.title() + ". Your Attendance-Out is marked"  # Modify this text as needed
+				text_lines = [
+					"Bye " + person_name.title() + ". " + "Your Attendance Check-Out is marked.",
+					"Please press q to exit."
+				]  # List of text lines to draw
 				text_color = (255, 255, 255)  # White color for the text
-				text_size = cv2.getTextSize(text, font, 1, 2)[0]
-				text_x = (background_image.shape[1] - text_size[0]) // 2
-				text_y = (background_image.shape[0] + text_size[1]) // 3
-				cv2.putText(background_image, text, (text_x, text_y), font, 1, text_color, 2, cv2.LINE_AA)
+
+				# Initial vertical position for the first line of text
+				text_y = 50  # Start drawing the first line at y = 50
+
+				# Draw each line of text
+				for line in text_lines:
+					text_size = cv2.getTextSize(line, font, 1, 2)[0]
+					text_x = (background_image.shape[1] - text_size[0]) // 2  # Center the text horizontally
+					cv2.putText(background_image, line, (text_x, text_y), font, 1, text_color, 2, cv2.LINE_AA)
+					text_y += text_size[1] + 10  # Update y position for the next line (adding a gap of 10 pixels)
 
                 # Display the image in a window for 10 seconds
 				cv2.imshow("Face Detected", background_image)
-				update_attendance_in_db_out(present)
-				cv2.waitKey(5000)
+				#update_attendance_in_db_out(present)
+				#cv2.waitKey(5000)
 
-				vs.stop()  # Stop the video stream
-				cv2.destroyAllWindows()  # Close all windows
-				return redirect('home')  # Redirect to the desired page after detecting a face
+				#vs.stop()  # Stop the video stream
+				#cv2.destroyAllWindows()  # Close all windows
+				#return redirect('home')  # Redirect to the desired page after detecting a face
 			else:
 				person_name="unknown"
 				cv2.putText(frame, str(person_name), (x+6,y+h-6), cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,255,0),1)
