@@ -840,72 +840,66 @@ def mark_your_attendance_out(request):
 	update_attendance_in_db_out(present)
 	return redirect('home')
 
-
+def image_files_in_folder(folder):
+    return [os.path.join(folder, f) for f in os.listdir(folder) if f.endswith(('jpg', 'jpeg', 'png'))]
 
 
 @login_required
 def train(request):
-	if request.user.username!='admin':
-		return redirect('not-authorised')
+    if request.user.username != 'admin':
+        return redirect('not-authorised')
 
-	training_dir='face_recognition_data/training_dataset'
-	
-	
-	
-	count=0
-	for person_name in os.listdir(training_dir):
-		curr_directory=os.path.join(training_dir,person_name)
-		if not os.path.isdir(curr_directory):
-			continue
-		for imagefile in image_files_in_folder(curr_directory):
-			count+=1
+    start_time = time.time()  # Start the timer
 
-	X=[]
-	y=[]
-	i=0
+    training_dir = 'face_recognition_data/training_dataset'
+    count = 0
+    for person_name in os.listdir(training_dir):
+        curr_directory = os.path.join(training_dir, person_name)
+        if not os.path.isdir(curr_directory):
+            continue
+        for imagefile in image_files_in_folder(curr_directory):
+            count += 1
 
+    X = []
+    y = []
+    i = 0
 
-	for person_name in os.listdir(training_dir):
-		print(str(person_name))
-		curr_directory=os.path.join(training_dir,person_name)
-		if not os.path.isdir(curr_directory):
-			continue
-		for imagefile in image_files_in_folder(curr_directory):
-			print(str(imagefile))
-			image=cv2.imread(imagefile)
-			try:
-				X.append((face_recognition.face_encodings(image)[0]).tolist())
-				
+    for person_name in os.listdir(training_dir):
+        print(str(person_name))
+        curr_directory = os.path.join(training_dir, person_name)
+        if not os.path.isdir(curr_directory):
+            continue
+        for imagefile in image_files_in_folder(curr_directory):
+            print(str(imagefile))
+            image = cv2.imread(imagefile)
+            try:
+                X.append((face_recognition.face_encodings(image)[0]).tolist())
+                y.append(person_name)
+                i += 1
+            except:
+                print("removed")
+                os.remove(imagefile)
 
-				
-				y.append(person_name)
-				i+=1
-			except:
-				print("removed")
-				os.remove(imagefile)
+    targets = np.array(y)
+    encoder = LabelEncoder()
+    encoder.fit(y)
+    y = encoder.transform(y)
+    X1 = np.array(X)
+    print("shape: " + str(X1.shape))
+    np.save('face_recognition_data/classes.npy', encoder.classes_)
+    svc = SVC(kernel='linear', probability=True)
+    svc.fit(X1, y)
+    svc_save_path = "face_recognition_data/svc.sav"
+    with open(svc_save_path, 'wb') as f:
+        pickle.dump(svc, f)
 
-			
+    vizualize_Data(X1, targets)
 
+    end_time = time.time()  # End the timer
+    elapsed_time = end_time - start_time  # Calculate the elapsed time
+    messages.success(request, f'Training Complete. Time taken: {elapsed_time:.2f} seconds.')
 
-	targets=np.array(y)
-	encoder = LabelEncoder()
-	encoder.fit(y)
-	y=encoder.transform(y)
-	X1=np.array(X)
-	print("shape: "+ str(X1.shape))
-	np.save('face_recognition_data/classes.npy', encoder.classes_)
-	svc = SVC(kernel='linear',probability=True)
-	svc.fit(X1,y)
-	svc_save_path="face_recognition_data/svc.sav"
-	with open(svc_save_path, 'wb') as f:
-		pickle.dump(svc,f)
-
-	
-	vizualize_Data(X1,targets)
-	
-	messages.success(request, f'Training Complete.')
-
-	return render(request,"recognition/train.html")
+    return render(request, "recognition/train.html")
 
 
 @login_required
