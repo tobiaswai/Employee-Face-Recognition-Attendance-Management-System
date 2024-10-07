@@ -388,11 +388,11 @@ def hours_vs_employee_given_date(present_qs,time_qs):
 
 	df = read_frame(qs)	
 	df['hours']=df_hours
-	df['username']=df_username
+	df['employee']=df_username
 	df["break_hours"]=df_break_hours
 
 
-	sns.barplot(data=df,x='username',y='hours')
+	sns.barplot(data=df,x='employee',y='hours')
 	plt.xticks(rotation='vertical')
 	rcParams.update({'figure.autolayout': True})
 	plt.tight_layout()
