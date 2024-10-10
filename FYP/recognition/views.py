@@ -120,7 +120,7 @@ def create_dataset(username):
 		# @params with the millisecond of delay 1
 		cv2.waitKey(1)
 		#To get out of the loop
-		if(sampleNum>150):
+		if(sampleNum>100):
 			break
 	
 	#Stoping the videostream
