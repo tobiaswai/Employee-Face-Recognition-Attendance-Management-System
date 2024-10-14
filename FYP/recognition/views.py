@@ -153,7 +153,7 @@ def vizualize_Data(embedded, targets,):
 		plt.scatter(X_embedded[idx, 0], X_embedded[idx, 1], label=t)
 	plt.legend(bbox_to_anchor=(1, 1));
 	rcParams.update({'figure.autolayout': True})
-	plt.tight_layout()	
+	plt.tight_layout(pad=3.0)	
 	plt.savefig('./recognition/static/recognition/img/training_visualisation.png')
 	plt.close()
 
