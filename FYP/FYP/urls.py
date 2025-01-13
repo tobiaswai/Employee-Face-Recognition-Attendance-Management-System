@@ -26,6 +26,9 @@ urlpatterns = [
     path('dashboard/', recog_views.dashboard, name='dashboard'),
     path('train/', recog_views.train, name='train'),
     path('add_photos/', recog_views.add_photos, name='add-photos'),
+    path('employees/', recog_views.employee_list, name='employee_list'),
+    path('employees/<int:id>/edit/', recog_views.employee_edit, name='employee_edit'),
+    path('employees/<int:id>/delete/', recog_views.employee_delete, name='employee_delete'),
     
     path('login/',auth_views.LoginView.as_view(template_name='employee/login.html'),name='login'),
     path('logout/',auth_views.LogoutView.as_view(template_name='recognition/home.html'),name='logout'),

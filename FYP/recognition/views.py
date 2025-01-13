@@ -1,5 +1,5 @@
-from django.shortcuts import render,redirect
-from .forms import usernameForm,DateForm,UsernameAndDateForm, DateForm_2
+from django.shortcuts import render,redirect, get_object_or_404
+from .forms import usernameForm,DateForm,UsernameAndDateForm, DateForm_2, EmployeeForm, ShiftEdit
 from django.contrib import messages
 from django.contrib.auth.models import User
 import cv2
@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 import datetime
 from django_pandas.io import read_frame
-from employee.models import Present, Time
+from employee.models import Present, Time, Shift
 import seaborn as sns
 import pandas as pd
 from django.db.models import Count
@@ -924,3 +924,48 @@ def view_my_attendance_employee_login(request):
 	else:
 		form=DateForm_2()
 		return render(request,'recognition/view_my_attendance_employee_login.html', {'form' : form, 'qs' :qs})
+
+def employee_list(request):
+    employees = User.objects.all().prefetch_related('shift_set')
+    return render(request, 'recognition/employee_list.html', {'employees': employees})
+
+def employee_edit(request, id=None):
+    if id:
+        employee = get_object_or_404(User, id=id)
+        try:
+            shift = Shift.objects.get(user=employee)
+        except Shift.DoesNotExist:
+            shift = None
+    else:
+        employee = User()
+        shift = None
+
+    if request.method == 'POST':
+        user_form = EmployeeForm(request.POST, instance=employee)
+        shift_form = ShiftEdit(request.POST, request.FILES, instance=shift)
+
+        if user_form.is_valid() and shift_form.is_valid():
+            # Save user
+            saved_user = user_form.save(commit=False)
+            # Save shift
+            saved_shift = shift_form.save(commit=False)
+            saved_shift.user = saved_user
+            saved_shift.save()
+
+            return redirect('employee_list')
+    else:
+        user_form = EmployeeForm(instance=employee)
+        shift_data = {'user': employee} if shift is None else {}
+        shift_form = ShiftEdit(instance=shift, initial=shift_data)
+
+    return render(request, 'recognition/employee_form.html', {
+        'user_form': user_form,
+        'shift_form': shift_form
+    })
+
+def employee_delete(request, id):
+	employee = get_object_or_404(User, id=id)
+	if request.method == 'POST':
+		employee.delete()
+		return redirect('employee_list')
+	return render(request, 'recognition/employee_confirm_delete.html', {'employee': employee})

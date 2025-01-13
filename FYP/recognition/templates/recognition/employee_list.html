@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employee List</title>
+</head>
+<body>
+    <h1>Employee List</h1>
+    <ul>
+        {% for employee in employees %}
+            <li>
+                {{ employee.username }} - {{ employee.email }}
+                {% for shift in employee.shift_set.all %}
+                    - Shift Type: {{ shift.get_shift_type_display }}
+                {% empty %}
+                    - No shift assigned
+                {% endfor %}
+                <a href="{% url 'employee_edit' id=employee.id %}">Edit</a>
+                <a href="{% url 'employee_delete' id=employee.id %}">Delete</a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

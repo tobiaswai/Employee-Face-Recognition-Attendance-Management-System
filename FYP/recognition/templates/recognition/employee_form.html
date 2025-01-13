@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Employee</title>
+</head>
+<body>
+    <h1>{% if form.instance.pk %}Edit{% else %}Add{% endif %} Employee</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ user_form.as_p }}
+        {{ shift_form.as_p }}
+        <button type="submit">Save</button>
+    </form>
+</body>
+</html>
