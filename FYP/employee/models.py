@@ -6,9 +6,17 @@ import datetime
 	
 
 class Present(models.Model):
-	user=models.ForeignKey(User,on_delete=models.CASCADE)
-	date = models.DateField(default=datetime.date.today)
-	present=models.BooleanField(default=False)
+    STATUS_CHOICES = [
+        ('P', 'Present'),
+        ('A', 'Absent'),
+        ('L', 'Late'),
+        ('E', 'Excused'),
+    ]
+    user=models.ForeignKey(User,on_delete=models.CASCADE)
+    date = models.DateField(default=datetime.date.today)
+    present=models.BooleanField(default=False)
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='A')
+
 	
 class Time(models.Model):
 	user=models.ForeignKey(User,on_delete=models.CASCADE)

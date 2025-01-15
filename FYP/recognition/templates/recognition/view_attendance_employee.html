@@ -55,7 +55,7 @@
             <tr>
                 <th scope="col">Date</th>
                 <th scope="col">Employee</th>
-                <th scope="col">Present</th>
+                <th scope="col">Status</th>
                 <th scope="col">Time in</th>
                 <th scope="col">Time out</th>
                 <th scope="col">Hours</th>
@@ -67,7 +67,7 @@
             <tr>
                 <td>{{ item.date }}</td>
                 <td>{{ item.user.username }}</td>
-                <td>{{ item.present|yesno:"P,A" }}</td>
+                <td>{{ item.status }}</td>
                 <td>{{ item.time_in|default:"-" }}</td>
                 <td>{{ item.time_out|default:"-" }}</td>
                 <td>{{ item.hours }}</td>

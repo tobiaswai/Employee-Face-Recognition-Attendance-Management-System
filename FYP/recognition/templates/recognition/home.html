@@ -52,6 +52,14 @@
             text-decoration: none;
         }
 
+        #date-time {
+            color: #fff; /* White color text */
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            display: inline-block; /* Makes the background fit to the content size */
+        }
+        
     </style>
 </head>
 
@@ -60,9 +68,12 @@
     <div class="container overlay">
         <header>
             <h1 class="text-center section-title"><strong>Face Recognition Attendance Management System</strong></h1>
+            <div class="text-center" style="color: white; margin-top: 25px;">
+                <span id="date-time"></span>
+            </div>
         </header>
 
-        <div class="col-lg-12" style="padding-top: 100px;">
+        <div class="col-lg-12" style="padding-top: 30px;">
             {% if messages %}
                 {% for message in messages %}
                 <div class="alert alert-{{ message.tags }}">{{ message }}</div>
@@ -98,6 +109,24 @@
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script>
+        function updateDateTime() {
+            const now = new Date();
+            const dateString = now.toLocaleString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        });
+            document.getElementById('date-time').innerHTML = dateString;
+        }
+
+        setInterval(updateDateTime, 1000); // Update the date and time every second
+    </script>
 </body>
 
 </html>

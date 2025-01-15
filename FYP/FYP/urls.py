@@ -21,7 +21,7 @@ from employee import views as employee_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-     path('', recog_views.home, name='home'),
+    path('', recog_views.home, name='home'),
     
     path('dashboard/', recog_views.dashboard, name='dashboard'),
     path('train/', recog_views.train, name='train'),

@@ -1,5 +1,6 @@
 from django.shortcuts import render,redirect, get_object_or_404
 from .forms import usernameForm,DateForm,UsernameAndDateForm, DateForm_2, EmployeeForm, ShiftEdit
+from django.utils.dateparse import parse_time
 from django.contrib import messages
 from django.contrib.auth.models import User
 import cv2
@@ -348,6 +349,10 @@ def hours_vs_employee_given_date(present_qs,time_qs):
 		df_username.append(user.username)
 		df_break_hours.append(obj.break_hours)
 		obj.hours=convert_hours_to_hours_mins(obj.hours)
+		if(obj.hours<8):
+			Present.status='E'
+		if(obj.hours<=8):
+			Present.status='P'
 		obj.break_hours=convert_hours_to_hours_mins(obj.break_hours)
 
 
@@ -823,6 +828,29 @@ def view_attendance_home(request):
 	last_week_emp_count_vs_date()
 	return render(request,"recognition/view_attendance_home.html", {'total_num_of_emp' : total_num_of_emp, 'emp_present_today': emp_present_today})
 
+def update_user_attendance_status(user, date_from, date_to):
+    time_entries = Time.objects.filter(user=user, date__range=[date_from, date_to])
+    
+    for time_entry in time_entries:
+        shift = Shift.objects.filter(user=user).first()
+        if not shift:
+            continue  # Skip if no shift is defined for the user
+
+        # Assuming time field is clock-in and separate logic exists for clock-out
+        clock_in_time = time_entry.time.time() if time_entry.time else None
+        shift_start = parse_time(shift.start_time)
+        shift_end = parse_time(shift.end_time)
+
+        status = 'P'  # Default to 'Present'
+        if clock_in_time > shift_start:
+            status = 'L'  # Late
+        if time_entry.out and time_entry.time.time() < shift_end:
+            status = 'E'  # Excused
+
+        Present.objects.update_or_create(
+            user=user, date=time_entry.date,
+            defaults={'status': status, 'present': (status == 'P')}
+        )
 
 @login_required
 def view_attendance_date(request):
