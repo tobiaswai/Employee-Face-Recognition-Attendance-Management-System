@@ -16,8 +16,6 @@ class Present(models.Model):
     date = models.DateField(default=datetime.date.today)
     present=models.BooleanField(default=False)
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='A')
-
-	
 class Time(models.Model):
 	user=models.ForeignKey(User,on_delete=models.CASCADE)
 	date = models.DateField(default=datetime.date.today)
@@ -44,3 +42,11 @@ class Shift(models.Model):
         times = shift_times.get(self.shift_type, ('00:00', '00:00'))
         self.start_time, self.end_time = times
         super().save(*args, **kwargs)
+        
+class Events(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255,null=True,blank=True)
+    start = models.DateTimeField(null=True,blank=True)
+    end = models.DateTimeField(null=True,blank=True)
+    class Meta:  
+        db_table = "tblevents"

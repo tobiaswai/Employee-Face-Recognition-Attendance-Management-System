@@ -9,8 +9,14 @@
             background-color: #f4f4f9;
             color: #333;
         }
+        .header {
+            display: flex;
+            justify-content: space-between; /* Aligns items on the main-axis */
+            align-items: center; /* Aligns items on the cross-axis */
+        }
         h1 {
             color: #0066cc;
+            margin: 0; /* Removes default margin */
         }
         ul {
             list-style: none;
@@ -36,7 +42,10 @@
     </style>
 </head>
 <body>
-    <h1>Employee List</h1>
+    <div class="header">
+        <h1>Employee List</h1>
+        <a class="nav-link" href="{% url 'view-attendance-home' %}">Back to Attendance Dashboard</a>
+    </div>
     <ul>
         {% for employee in employees %}
             <li>

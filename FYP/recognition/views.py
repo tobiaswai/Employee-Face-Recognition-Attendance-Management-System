@@ -1,6 +1,7 @@
 from django.shortcuts import render,redirect, get_object_or_404
 from .forms import usernameForm,DateForm,UsernameAndDateForm, DateForm_2, EmployeeForm, ShiftEdit
 from django.utils.dateparse import parse_time
+from django.http import JsonResponse 
 from django.contrib import messages
 from django.contrib.auth.models import User
 import cv2
@@ -27,7 +28,7 @@ import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 import datetime
 from django_pandas.io import read_frame
-from employee.models import Present, Time, Shift
+from employee.models import Present, Time, Shift, Events
 import seaborn as sns
 import pandas as pd
 from django.db.models import Count
@@ -261,8 +262,10 @@ def hours_vs_date_given_employee(present_qs,time_qs,admin=True):
 		obj.break_hours=0
 		if (len(times_in)>0):			
 			obj.time_in=times_in.first().time
-			
-		if (len(times_out)>0):
+			if obj.time_in is not None:
+				obj.status = 'P'
+				obj.save()
+		if times_out.exists():
 			obj.time_out=times_out.last().time
 
 		if(obj.time_in is not None and obj.time_out is not None):
@@ -270,6 +273,9 @@ def hours_vs_date_given_employee(present_qs,time_qs,admin=True):
 			to=obj.time_out
 			hours=((to-ti).total_seconds())/3600
 			obj.hours=hours
+			if obj.hours < 8 :
+				obj.status = 'E'
+				obj.save()
 		else:
 			obj.hours=0
 
@@ -349,10 +355,6 @@ def hours_vs_employee_given_date(present_qs,time_qs):
 		df_username.append(user.username)
 		df_break_hours.append(obj.break_hours)
 		obj.hours=convert_hours_to_hours_mins(obj.hours)
-		if(obj.hours<8):
-			Present.status='E'
-		if(obj.hours<=8):
-			Present.status='P'
 		obj.break_hours=convert_hours_to_hours_mins(obj.break_hours)
 
 
@@ -997,3 +999,51 @@ def employee_delete(request, id):
 		employee.delete()
 		return redirect('employee_list')
 	return render(request, 'recognition/employee_confirm_delete.html', {'employee': employee})
+
+def calender_index(request):  
+    all_events = Events.objects.all()
+    context = {
+        "events":all_events,
+    }
+    return render(request,'recognition/calender_index.html',context)
+
+def calender_all_events(request):                                                                                                 
+    all_events = Events.objects.all()                                                                                    
+    out = []                                                                                                             
+    for event in all_events:                                                                                             
+        out.append({                                                                                                     
+            'title': event.name,                                                                                         
+            'id': event.id,                                                                                              
+            'start': event.start.strftime("%m/%d/%Y, %H:%M:%S"),                                                         
+            'end': event.end.strftime("%m/%d/%Y, %H:%M:%S"),                                                             
+        })                                                                                                               
+    return JsonResponse(out, safe=False) 
+
+def calender_add_event(request):
+    start = request.GET.get("start", None)
+    end = request.GET.get("end", None)
+    title = request.GET.get("title", None)
+    event = Events(name=str(title), start=start, end=end)
+    event.save()
+    data = {}
+    return JsonResponse(data)
+
+def calender_update(request):
+    start = request.GET.get("start", None)
+    end = request.GET.get("end", None)
+    title = request.GET.get("title", None)
+    id = request.GET.get("id", None)
+    event = Events.objects.get(id=id)
+    event.start = start
+    event.end = end
+    event.name = title
+    event.save()
+    data = {}
+    return JsonResponse(data)
+
+def calender_remove(request):
+    id = request.GET.get("id", None)
+    event = Events.objects.get(id=id)
+    event.delete()
+    data = {}
+    return JsonResponse(data)
