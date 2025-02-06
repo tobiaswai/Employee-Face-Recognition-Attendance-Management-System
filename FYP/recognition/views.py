@@ -245,73 +245,66 @@ def convert_hours_to_hours_mins(hours):
 
 
 #used
-def hours_vs_date_given_employee(present_qs,time_qs,admin=True):
-	register_matplotlib_converters()
-	df_hours=[]
-	df_break_hours=[]
-	qs=present_qs
+def hours_vs_date_given_employee(present_qs, time_qs, admin=True):
+    register_matplotlib_converters()
+    df_hours = []
+    df_break_hours = []
+    qs = present_qs
 
-	for obj in qs:
-		date=obj.date
-		times_in=time_qs.filter(date=date).filter(out=False).order_by('time')
-		times_out=time_qs.filter(date=date).filter(out=True).order_by('time')
-		times_all=time_qs.filter(date=date).order_by('time')
-		obj.time_in=None
-		obj.time_out=None
-		obj.hours=0
-		obj.break_hours=0
-		if (len(times_in)>0):			
-			obj.time_in=times_in.first().time
-			if obj.time_in is not None:
-				obj.status = 'P'
-				obj.save()
-		if times_out.exists():
-			obj.time_out=times_out.last().time
+    for obj in qs:
+        date = obj.date
+        user_shift = Shift.objects.filter(user=obj.user).first()
+        if not user_shift:
+            print(f"No shift assigned for user {obj.user}")
+            continue
+        
+        times_in = time_qs.filter(date=date, out=False).order_by('time')
+        times_out = time_qs.filter(date=date, out=True).order_by('time')
+        times_all = time_qs.filter(date=date).order_by('time')
 
-		if(obj.time_in is not None and obj.time_out is not None):
-			ti=obj.time_in
-			to=obj.time_out
-			hours=((to-ti).total_seconds())/3600
-			obj.hours=hours
-			if obj.hours < 8 :
-				obj.status = 'E'
-				obj.save()
-		else:
-			obj.hours=0
+        obj.time_in = times_in.first().time if times_in.exists() else None
+        obj.time_out = times_out.last().time if times_out.exists() else None
 
-		(check,break_hourss)= check_validity_times(times_all)
-		if check:
-			obj.break_hours=break_hourss
+        if obj.time_in:
+            obj.shift_start_time = user_shift.start_time
+            if obj.time_in.time() > obj.shift_start_time:
+                obj.status = 'L'  
+            else:
+                obj.status = 'P' 
+            obj.save()
 
+        if obj.time_in and obj.time_out:
+            ti = obj.time_in
+            to = obj.time_out
+            hours = (to - ti).total_seconds() / 3600
+            obj.hours = hours
+            if obj.hours < 8:
+                obj.status = 'E' 
+                obj.save()
+        else:
+            obj.hours = 0
+            
+        df_hours.append(obj.hours)
 
-		else:
-			obj.break_hours=0
-		
-		df_hours.append(obj.hours)
-		df_break_hours.append(obj.break_hours)
-		obj.hours=convert_hours_to_hours_mins(obj.hours)
-		obj.break_hours=convert_hours_to_hours_mins(obj.break_hours)	
-	
-	
-	df = read_frame(qs)	
-	
-	
-	df["hours"]=df_hours
-	df["break_hours"]=df_break_hours
+        obj.hours = convert_hours_to_hours_mins(obj.hours)
 
-	print(df)
-	
-	sns.barplot(data=df,x='date',y='hours')
-	plt.xticks(rotation='vertical')
-	rcParams.update({'figure.autolayout': True})
-	plt.tight_layout()
-	if(admin):
-		plt.savefig('./recognition/static/recognition/img/attendance_graphs/hours_vs_date/1.png')
-		plt.close()
-	else:
-		plt.savefig('./recognition/static/recognition/img/attendance_graphs/employee_login/1.png')
-		plt.close()
-	return qs
+    df = read_frame(qs)
+    df["hours"] = df_hours
+
+    print(df)
+    
+    sns.barplot(data=df, x='date', y='hours')
+    plt.xticks(rotation='vertical')
+    rcParams.update({'figure.autolayout': True})
+    plt.tight_layout()
+    
+    if admin:
+        plt.savefig('./recognition/static/recognition/img/attendance_graphs/hours_vs_date/1.png')
+    else:
+        plt.savefig('./recognition/static/recognition/img/attendance_graphs/employee_login/1.png')
+    plt.close()
+
+    return qs
 	
 
 #used
@@ -355,13 +348,11 @@ def hours_vs_employee_given_date(present_qs,time_qs):
 		df_username.append(user.username)
 		df_break_hours.append(obj.break_hours)
 		obj.hours=convert_hours_to_hours_mins(obj.hours)
-		obj.break_hours=convert_hours_to_hours_mins(obj.break_hours)
 
 
 	df = read_frame(qs)	
 	df['hours']=df_hours
 	df['employee']=df_username
-	df["break_hours"]=df_break_hours
 
 
 	sns.barplot(data=df,x='employee',y='hours')
@@ -829,30 +820,6 @@ def view_attendance_home(request):
 	this_week_emp_count_vs_date()
 	last_week_emp_count_vs_date()
 	return render(request,"recognition/view_attendance_home.html", {'total_num_of_emp' : total_num_of_emp, 'emp_present_today': emp_present_today})
-
-def update_user_attendance_status(user, date_from, date_to):
-    time_entries = Time.objects.filter(user=user, date__range=[date_from, date_to])
-    
-    for time_entry in time_entries:
-        shift = Shift.objects.filter(user=user).first()
-        if not shift:
-            continue  # Skip if no shift is defined for the user
-
-        # Assuming time field is clock-in and separate logic exists for clock-out
-        clock_in_time = time_entry.time.time() if time_entry.time else None
-        shift_start = parse_time(shift.start_time)
-        shift_end = parse_time(shift.end_time)
-
-        status = 'P'  # Default to 'Present'
-        if clock_in_time > shift_start:
-            status = 'L'  # Late
-        if time_entry.out and time_entry.time.time() < shift_end:
-            status = 'E'  # Excused
-
-        Present.objects.update_or_create(
-            user=user, date=time_entry.date,
-            defaults={'status': status, 'present': (status == 'P')}
-        )
 
 @login_required
 def view_attendance_date(request):
