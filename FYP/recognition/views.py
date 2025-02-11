@@ -278,7 +278,8 @@ def hours_vs_date_given_employee(present_qs, time_qs, admin=True):
             to = obj.time_out
             hours = (to - ti).total_seconds() / 3600
             obj.hours = hours
-            if obj.hours < 8:
+            obj.shift_end_time = user_shift.end_time
+            if obj.hours < 8 or obj.time_out.time() < obj.shift_end_time and obj.status != 'L':
                 obj.status = 'E' 
                 obj.save()
         else:

@@ -23,10 +23,9 @@ class Time(models.Model):
 	out=models.BooleanField(default=False)
 class Shift(models.Model):
     SHIFT_CHOICES = (
-        ('A', 'Shift A (03:00 - 09:00)'),
-        ('B', 'Shift B (09:00 - 15:00)'),
-        ('C', 'Shift C (15:00 - 21:00)'), 
-        ('D', 'Shift D (21:00 - 03:00)'), 
+        ('A', 'Shift A (04:00 - 12:00)'),
+        ('B', 'Shift B (12:00 - 20:00)'),
+        ('C', 'Shift C (20:00 - 04:00)'), 
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, unique=True)
     shift_type = models.CharField(max_length=1, choices=SHIFT_CHOICES)
@@ -36,10 +35,9 @@ class Shift(models.Model):
     def save(self, *args, **kwargs):
         # Define start and end times based on shift type
         shift_times = {
-            'A': ('19:00:00', '01:00:00'),
-            'B': ('01:00:00', '07:00:00'),
-            'C': ('07:00:00', '13:00:00'),
-            'D': ('13:00:00', '19:00:00'),
+            'A': ('20:00:00', '04:00:00'),
+            'B': ('04:00:00', '12:00:00'),
+            'C': ('12:00:00', '20:00:00'),
         }
         times = shift_times.get(self.shift_type, ('00:00:00', '00:00:00'))
         self.start_time, self.end_time = times

@@ -51,19 +51,17 @@
                 <th scope="col">Time in</th>
                 <th scope="col">Time out</th>
                 <th scope="col">Hours</th>
-                <th scope="col">Break Hours</th>
             </tr>
         </thead>
         <tbody>
             {% for item in qs %}
-            <tr>
+            <tr {% if item.status == 'L' %}style="color: red;"{% elif item.status == 'E' %}style="color: orange;"{% endif %}>
                 <td>{{ item.date }}</td>
                 <td>{{ item.user.username }}</td>
                 <td>{{ item.status }}</td>
                 <td>{{ item.time_in|default:"-" }}</td>
                 <td>{{ item.time_out|default:"-" }}</td>
                 <td>{{ item.hours }}</td>
-                <td>{{ item.break_hours }}</td>
             </tr>
             {% endfor %}
         </tbody>
