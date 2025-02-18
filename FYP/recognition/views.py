@@ -4,6 +4,8 @@ from django.utils.dateparse import parse_time
 from django.http import JsonResponse 
 from django.contrib import messages
 from django.contrib.auth.models import User
+from datetime import timedelta, date
+from collections import defaultdict
 import cv2
 import dlib
 import imutils
@@ -1015,3 +1017,27 @@ def calender_remove(request):
     event.delete()
     data = {}
     return JsonResponse(data)
+
+def schedule_view(request):
+    start_date = date.today()  # Start of the week, adjust as necessary
+    end_date = start_date + timedelta(days=6)  # One week later
+
+    shifts = Shift.objects.filter(shift_date__range=(start_date, end_date)).order_by('shift_date')
+    schedule = defaultdict(lambda: defaultdict(list))
+
+    for shift in shifts:
+        day = shift.shift_date.strftime('%a')  # Short day name, e.g., 'Mon'
+        schedule[shift.shift_type][day].append(shift.user.username)
+
+    # Ensure all days are represented in the dictionary
+    days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    for shift_type in ['A', 'B', 'C']:
+        for day in days:
+            schedule[shift_type].setdefault(day, [])
+
+    context = {
+        'schedule': dict(schedule),
+        'days': days,
+        'shift_types': ['A', 'B', 'C']
+    }
+    return render(request, 'recognition/schedule.html', context)

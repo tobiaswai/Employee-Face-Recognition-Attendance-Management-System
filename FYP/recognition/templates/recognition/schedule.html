@@ -1,0 +1,48 @@
+<!-- shift_board.html -->
+
+{% extends "base.html" %}
+{% block content %}
+<h2>Shift Board</h2>
+<div>
+    <a href="{% url 'shift_board' previous_week.year previous_week.isocalendar().week %}">Previous Week</a>
+    <a href="{% url 'shift_board' next_week.year next_week.isocalendar().week %}">Next Week</a>
+</div>
+<table>
+    <thead>
+        <tr>
+            <th>Employee Name</th>
+            {% for date in week_dates %}
+            <th>{{ date|date:"D d M" }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for employee in employees %}
+        <tr>
+            <td>{{ employee.name }}</td>
+            {% for date in week_dates %}
+            <td>
+                {% if shifts[employee.id][date] %}
+                {{ shifts[employee.id][date] }}
+                {% else %}
+                <form method="post"><!-- Form to add shift -->
+                    {% csrf_token %}
+                    <input type="hidden" name="employee_id" value="{{ employee.id }}">
+                    <input type="hidden" name="date" value="{{ date }}">
+                    <select name="shift_type">
+                        <option value="9-18">9:00 - 18:00</option>
+                        <option value="10-19">10:00 - 19:00</option>
+                        <option value="Flexible">Flexible</option>
+                        <option value="Off">Day Off</option>
+                        <option value="Leave">On Leave</option>
+                    </select>
+                    <button type="submit">Add</button>
+                </form>
+                {% endif %}
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
