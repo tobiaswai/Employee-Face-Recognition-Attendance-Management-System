@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@latest/main.min.css" rel="stylesheet">
+    <style>
+        /* Custom styles for event cells */
+        .fc-event-title, .fc-event-title-container {
+            white-space: normal; /* Allows text to wrap */
+        }
+        .fc-event-main-frame {
+            padding: 2px 4px; /* Add some padding inside the event for better readability */
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@latest/main.min.js"></script>
+</head>
+<body>
+    <a href="{% url 'add_shift' %}">Add Shift</a>
+    <div id="calendar"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                events: '/api/shifts/',
+                eventClick: function(arg) {
+                    window.location.href = `/edit_shift/${arg.event.id}`;
+                },
+                eventContent: function(arg) {
+                    var element = document.createElement('div');
+                    element.classList.add('fc-event-title-container'); // Use FullCalendar's class for consistency
+                    element.innerHTML = `<b>${arg.event.title}</b>`;
+                    return { domNodes: [element] };
+                }
+            });
+            calendar.render();
+        });
+    </script>
+</body>
+</html>

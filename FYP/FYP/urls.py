@@ -48,7 +48,8 @@ urlpatterns = [
     path('update/', recog_views.calender_update, name='calender_update'),
     path('remove/', recog_views.calender_remove, name='calender_remove'),
     
-    path('schedule/', recog_views.schedule_view, name='view_schedule'),
-
-
+    path('calendar/', recog_views.calendar_view, name='calendar'),
+    path('api/shifts/', recog_views.shifts_api, name='shifts_api'),
+    path('add_shift/', recog_views.add_shift, name='add_shift'),
+    path('edit_shift/<int:shift_id>/', recog_views.edit_shift, name='edit_shift'),
 ]

@@ -1,7 +1,7 @@
 from django.forms import ModelForm
 from django.contrib.auth.models import User
 from django import forms
-from employee.models import Shift
+from employee.models import Shift, ShiftCalendar
 
 #from django.contrib.admin.widgets import AdminDateWidget
 
@@ -28,3 +28,14 @@ class EmployeeForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username', 'email']
+        
+class ShiftForm(forms.ModelForm):
+    class Meta:
+        model = ShiftCalendar
+        fields = ['users', 'date', 'shift_type']
+
+    def __init__(self, *args, **kwargs):
+        super(ShiftForm, self).__init__(*args, **kwargs)
+        self.fields['users'].widget = forms.CheckboxSelectMultiple()
+        self.fields['users'].queryset = User.objects.all()
+        self.fields['date'].widget = forms.DateInput(attrs={'type': 'date'})

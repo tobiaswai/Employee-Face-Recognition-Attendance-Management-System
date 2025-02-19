@@ -29,10 +29,10 @@ class Shift(models.Model):
         ('A', 'Shift A (04:00 - 12:00)'),
         ('B', 'Shift B (12:00 - 20:00)'),
         ('C', 'Shift C (20:00 - 04:00)'), 
+        ('D', 'Day Off'),
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, unique=True)
     shift_type = models.CharField(max_length=1, choices=SHIFT_CHOICES)
-    date = models.DateField(null=True,blank=True)
     start_time = models.TimeField(editable=False)
     end_time = models.TimeField(editable=False)
 
@@ -57,3 +57,17 @@ class Event(models.Model):
     def get_html_url(self):
         url = reverse('cal:event_edit', args=(self.id,))
         return f'<a href="{url}"> {self.title} </a>'
+    
+class ShiftCalendar(models.Model):
+    users = models.ManyToManyField(User)  # Changed from ForeignKey to ManyToManyField
+    date = models.DateField()
+    shift_type = models.CharField(max_length=1, choices=[
+        ('A', 'Shift A (04:00 - 12:00)'),
+        ('B', 'Shift B (12:00 - 20:00)'),
+        ('C', 'Shift C (20:00 - 04:00)'),
+        ('D', 'Day Off')
+    ])
+
+    def __str__(self):
+        user_names = ', '.join([user.username for user in self.users.all()])
+        return f"{user_names} - {self.date} - {self.get_shift_type_display()}"

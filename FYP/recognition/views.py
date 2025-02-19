@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect, get_object_or_404
-from .forms import usernameForm,DateForm,UsernameAndDateForm, DateForm_2, EmployeeForm, ShiftEdit
+from .forms import usernameForm,DateForm,UsernameAndDateForm, DateForm_2, EmployeeForm, ShiftEdit, ShiftForm
 from django.utils.dateparse import parse_time
 from django.http import JsonResponse 
 from django.contrib import messages
@@ -30,7 +30,7 @@ import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 import datetime
 from django_pandas.io import read_frame
-from employee.models import Present, Time, Shift, Events
+from employee.models import Present, Time, Shift, Event, ShiftCalendar
 import seaborn as sns
 import pandas as pd
 from django.db.models import Count
@@ -971,14 +971,14 @@ def employee_delete(request, id):
 	return render(request, 'recognition/employee_confirm_delete.html', {'employee': employee})
 
 def calender_index(request):  
-    all_events = Events.objects.all()
+    all_events = Event.objects.all()
     context = {
         "events":all_events,
     }
     return render(request,'recognition/calender_index.html',context)
 
 def calender_all_events(request):                                                                                                 
-    all_events = Events.objects.all()                                                                                    
+    all_events = Event.objects.all()                                                                                    
     out = []                                                                                                             
     for event in all_events:                                                                                             
         out.append({                                                                                                     
@@ -993,7 +993,7 @@ def calender_add_event(request):
     start = request.GET.get("start", None)
     end = request.GET.get("end", None)
     title = request.GET.get("title", None)
-    event = Events(name=str(title), start=start, end=end)
+    event = Event(name=str(title), start=start, end=end)
     event.save()
     data = {}
     return JsonResponse(data)
@@ -1003,7 +1003,7 @@ def calender_update(request):
     end = request.GET.get("end", None)
     title = request.GET.get("title", None)
     id = request.GET.get("id", None)
-    event = Events.objects.get(id=id)
+    event = Event.objects.get(id=id)
     event.start = start
     event.end = end
     event.name = title
@@ -1013,31 +1013,49 @@ def calender_update(request):
 
 def calender_remove(request):
     id = request.GET.get("id", None)
-    event = Events.objects.get(id=id)
+    event = Event.objects.get(id=id)
     event.delete()
     data = {}
     return JsonResponse(data)
 
-def schedule_view(request):
-    start_date = date.today()  # Start of the week, adjust as necessary
-    end_date = start_date + timedelta(days=6)  # One week later
+def calendar_view(request):
+    return render(request, 'recognition/calendar.html')
 
-    shifts = Shift.objects.filter(shift_date__range=(start_date, end_date)).order_by('shift_date')
-    schedule = defaultdict(lambda: defaultdict(list))
-
+def shifts_api(request):
+    shifts = ShiftCalendar.objects.all()
+    shift_data = []
     for shift in shifts:
-        day = shift.shift_date.strftime('%a')  # Short day name, e.g., 'Mon'
-        schedule[shift.shift_type][day].append(shift.user.username)
+        user_names = ', '.join(user.username for user in shift.users.all())
+        shift_entry = {
+            'title': f"{shift.get_shift_type_display()} - {user_names}",
+            'start': shift.date.isoformat(),
+            'allDay': True,
+            'id': shift.id  
+        }
+        shift_data.append(shift_entry)
+    return JsonResponse(shift_data, safe=False)
 
-    # Ensure all days are represented in the dictionary
-    days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-    for shift_type in ['A', 'B', 'C']:
-        for day in days:
-            schedule[shift_type].setdefault(day, [])
+def add_shift(request):
+    if request.method == 'POST':
+        form = ShiftForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('calendar')
+    else:
+        form = ShiftForm()
+    return render(request, 'recognition/add_shift.html', {'form': form})
 
-    context = {
-        'schedule': dict(schedule),
-        'days': days,
-        'shift_types': ['A', 'B', 'C']
-    }
-    return render(request, 'recognition/schedule.html', context)
+def edit_shift(request, shift_id):
+    shift = get_object_or_404(ShiftCalendar, pk=shift_id)
+    if request.method == 'POST':
+        if 'delete' in request.POST:  # Check if deleting
+            shift.delete()
+            return redirect('calendar')
+        else:
+            form = ShiftForm(request.POST, instance=shift)
+            if form.is_valid():
+                form.save()
+                return redirect('calendar')
+    else:
+        form = ShiftForm(instance=shift)
+    return render(request, 'recognition/edit_shift.html', {'form': form, 'shift_id': shift_id})

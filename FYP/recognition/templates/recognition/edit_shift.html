@@ -1,0 +1,10 @@
+{% block content %}
+  <h2>Edit Shift</h2>
+  <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" name="save">Save changes</button>
+      <button type="submit" name="delete" style="color: red;" onclick="return confirm('Are you sure you want to delete this shift?');">Delete Shift</button>
+  </form>
+  <a href="{% url 'calendar' %}">Back to Calendar</a>
+{% endblock %}
