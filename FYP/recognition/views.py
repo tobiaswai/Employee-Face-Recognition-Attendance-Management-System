@@ -1,7 +1,7 @@
 from django.shortcuts import render,redirect, get_object_or_404
 from .forms import usernameForm,DateForm,UsernameAndDateForm, DateForm_2, EmployeeForm, ShiftEdit, ShiftForm
 from django.utils.dateparse import parse_time
-from django.http import JsonResponse 
+from django.http import JsonResponse, HttpResponse
 from django.contrib import messages
 from django.contrib.auth.models import User
 from datetime import timedelta, date
@@ -30,7 +30,7 @@ import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 import datetime
 from django_pandas.io import read_frame
-from employee.models import Present, Time, Shift, Event, ShiftCalendar
+from employee.models import Present, Time, Shift, ShiftCalendar
 import seaborn as sns
 import pandas as pd
 from django.db.models import Count
@@ -378,6 +378,44 @@ def employees_present_today():
 	qs=Present.objects.filter(date=today).filter(present=True)
 	return len(qs)
 
+def employees_not_present_today():
+    total = total_number_employees()
+    present = employees_present_today()
+    return total - present
+
+def plot_employees_presence():
+    present_count = employees_present_today()
+    non_present_count = employees_not_present_today()
+
+    labels = 'Present', 'Not Present'
+    sizes = [present_count, non_present_count]
+    colors = ['#4CAF50', '#FFC107']  # Updated colors for a modern look
+    explode = (0.1, 0)  # "Explode" the first slice for emphasis
+
+    # Set up figure and adjust layout
+    plt.figure(figsize=(10, 8))
+    rcParams.update({'font.size': 16})  # Standardize font size
+
+    # Create the pie chart with new attributes
+    patches, texts, autotexts = plt.pie(sizes, explode=explode, colors=colors, autopct='%1.1f%%', pctdistance=0.85, shadow=False, startangle=90)
+
+    # Customize the design of autotexts and texts
+    for text in autotexts:
+        text.set_color('black')  # Enhance readability with a darker color
+        text.set_fontsize(18)  # Larger font size for percentage labels
+    
+    # Draw a circle at the center of pie to create a donut-like appearance
+    centre_circle = plt.Circle((0,0),0.70,fc='white')
+    fig = plt.gcf()
+    fig.gca().add_artist(centre_circle)
+
+    plt.axis('equal')  # Ensure it's drawn as a circle
+
+    # Add a legend, title, and save the figure
+    plt.legend(patches, labels, loc='best')  # Use a legend instead of labels on the slices
+
+    plt.savefig('./recognition/static/recognition/img/attendance_graphs/present_today/1.png', dpi=300)
+    plt.close()
 
 #used	
 def this_week_emp_count_vs_date():
@@ -820,6 +858,7 @@ def not_authorised(request):
 def view_attendance_home(request):
 	total_num_of_emp=total_number_employees()
 	emp_present_today=employees_present_today()
+	plot_employees_presence()
 	this_week_emp_count_vs_date()
 	last_week_emp_count_vs_date()
 	return render(request,"recognition/view_attendance_home.html", {'total_num_of_emp' : total_num_of_emp, 'emp_present_today': emp_present_today})
@@ -970,82 +1009,64 @@ def employee_delete(request, id):
 		return redirect('employee_list')
 	return render(request, 'recognition/employee_confirm_delete.html', {'employee': employee})
 
-def calender_index(request):  
-    all_events = Event.objects.all()
-    context = {
-        "events":all_events,
-    }
-    return render(request,'recognition/calender_index.html',context)
-
-def calender_all_events(request):                                                                                                 
-    all_events = Event.objects.all()                                                                                    
-    out = []                                                                                                             
-    for event in all_events:                                                                                             
-        out.append({                                                                                                     
-            'title': event.name,                                                                                         
-            'id': event.id,                                                                                              
-            'start': event.start.strftime("%m/%d/%Y, %H:%M:%S"),                                                         
-            'end': event.end.strftime("%m/%d/%Y, %H:%M:%S"),                                                             
-        })                                                                                                               
-    return JsonResponse(out, safe=False) 
-
-def calender_add_event(request):
-    start = request.GET.get("start", None)
-    end = request.GET.get("end", None)
-    title = request.GET.get("title", None)
-    event = Event(name=str(title), start=start, end=end)
-    event.save()
-    data = {}
-    return JsonResponse(data)
-
-def calender_update(request):
-    start = request.GET.get("start", None)
-    end = request.GET.get("end", None)
-    title = request.GET.get("title", None)
-    id = request.GET.get("id", None)
-    event = Event.objects.get(id=id)
-    event.start = start
-    event.end = end
-    event.name = title
-    event.save()
-    data = {}
-    return JsonResponse(data)
-
-def calender_remove(request):
-    id = request.GET.get("id", None)
-    event = Event.objects.get(id=id)
-    event.delete()
-    data = {}
-    return JsonResponse(data)
-
+@login_required
 def calendar_view(request):
     return render(request, 'recognition/calendar.html')
 
+@login_required
 def shifts_api(request):
+    shift_colors = {
+        'Shift A (04:00 - 12:00)': '#ffadad',  # Light red
+        'Shift B (12:00 - 20:00)': '#ffd6a5',  # Light orange
+        'Shift C (20:00 - 04:00)': '#caffbf',  # Light green
+        'Day Off': '#9bf6ff',  # Light blue
+    }
     shifts = ShiftCalendar.objects.all()
     shift_data = []
     for shift in shifts:
         user_names = ', '.join(user.username for user in shift.users.all())
+        shift_type = shift.get_shift_type_display()
+        color = shift_colors.get(shift_type, '#bdb2ff')  # Default color if no match
         shift_entry = {
-            'title': f"{shift.get_shift_type_display()} - {user_names}",
+            'title': f"{shift_type} - {user_names}",
             'start': shift.date.isoformat(),
             'allDay': True,
-            'id': shift.id  
+            'id': shift.id,
+            'color': color  # Add color to each shift entry
         }
         shift_data.append(shift_entry)
     return JsonResponse(shift_data, safe=False)
 
+@login_required
 def add_shift(request):
+    if not request.user.is_superuser:
+        return HttpResponse('', status=204)
+    initial_data = {}
+    # Check if a date is provided in the URL and use it to prepopulate the form
+    date_str = request.GET.get('date')
+    if date_str:
+        try:
+            # Parse the string to a date object (ensure the format matches the input)
+            initial_date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+            initial_data['date'] = initial_date
+        except ValueError:
+            # Handle the error in case of an invalid date format
+            pass
+
     if request.method == 'POST':
         form = ShiftForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('calendar')
+            return redirect('calendar')  # Ensure 'calendar' is a valid URL name in your url patterns
     else:
-        form = ShiftForm()
+        form = ShiftForm(initial=initial_data)  # Pass the initial data to the form when GET request
+
     return render(request, 'recognition/add_shift.html', {'form': form})
 
+@login_required
 def edit_shift(request, shift_id):
+    if not request.user.is_superuser:
+        return HttpResponse('', status=204)
     shift = get_object_or_404(ShiftCalendar, pk=shift_id)
     if request.method == 'POST':
         if 'delete' in request.POST:  # Check if deleting

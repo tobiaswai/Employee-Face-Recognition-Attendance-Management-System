@@ -65,48 +65,56 @@
 <body>
 
     <div class="main-container">
-        <div class="col-sm-12 text-center">
+        <div class="col-sm-10 text-center">
             <a href="{% url 'logout' %}" class="text-right">
                 <h5><i class="fa fa-user-circle" aria-hidden="true"></i> Logout</h5>
             </a>
             <h1 class="section-title">Welcome, admin.</h1>
         </div>
 
-        <div class="row">
-            <div class="col-md-3 text-center">
+        <div class="row justify-content-center">
+            <div class="col-md-2 text-center">
                 <a href="{% url 'register' %}">
                     <img src="{% static 'recognition/img/register.jpg' %}" class="img-responsive" style="width:200px;height:200px;" />
                 </a>
             </div>
-            <div class="col-md-3 text-center">
+            <div class="col-md-2 text-center">
                 <a href="{% url 'add-photos' %}">
                     <img src="{% static 'recognition/img/addphotos.jpg' %}" class="img-responsive" style="width:200px;height:200px;" />
                 </a>
             </div>
-            <div class="col-md-3 text-center">
+            <div class="col-md-2 text-center">
                 <a href="{% url 'train' %}" id="train">
                     <img src="{% static 'recognition/img/train.png' %}" class="img-responsive" style="width:200px;height:200px;" />
                 </a>
             </div>
-            <div class="col-md-3 text-center">
+            <div class="col-md-2 text-center">
                 <a href="{% url 'view-attendance-home' %}">
                     <img src="{% static 'recognition/img/reports.png' %}" class="img-responsive" style="width:200px;height:200px;" />
                 </a>
             </div>
+            <div class="col-md-2 text-center">
+                <a href="{% url 'calendar' %}">
+                    <img src="{% static 'recognition/img/calendar.png' %}" class="img-responsive" style="width:200px;height:200px;" />
+                </a>
+            </div>
         </div>
 
-        <div class="row text-center" style="padding-left:75px;">
-            <div class="col-md-3">
+        <div class="row" style="padding-left:150px;">
+            <div class="col-md-2">
                 <h4 class="att">Register New Employees</h4>
             </div>
-            <div class="col-md-3" style="padding-left:75px;">
+            <div class="col-md-2" style="padding-left:75px;">
                 <h4 class="att">Add Photos</h4>
             </div>
-            <div class="col-md-3" style="padding-left:100px;">
+            <div class="col-md-2" style="padding-left:100px;">
                 <h4 class="att">Train</h4>
             </div>
-            <div class="col-md-3" style="padding-left:75px;">
+            <div class="col-md-2" style="padding-left:100px;">
                 <h4 class="lgn">View Attendance Reports</h4>
+            </div>
+            <div class="col-md-2" style="padding-left:150px;">
+                <h4 class="lgn">Shift Calendar</h4>
             </div>
         </div>
 

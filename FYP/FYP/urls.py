@@ -41,12 +41,6 @@ urlpatterns = [
     path('view_attendance_employee', recog_views.view_attendance_employee ,name='view-attendance-employee'),
     path('view_my_attendance', recog_views.view_my_attendance_employee_login ,name='view-my-attendance-employee-login'),
     path('not_authorised', recog_views.not_authorised, name='not-authorised'),
-     
-    path('calender', recog_views.calender_index, name='calender'), 
-    path('all_events/', recog_views.calender_all_events, name='calender_all_events'), 
-    path('add_event/', recog_views.calender_add_event, name='calender_add_event'), 
-    path('update/', recog_views.calender_update, name='calender_update'),
-    path('remove/', recog_views.calender_remove, name='calender_remove'),
     
     path('calendar/', recog_views.calendar_view, name='calendar'),
     path('api/shifts/', recog_views.shifts_api, name='shifts_api'),

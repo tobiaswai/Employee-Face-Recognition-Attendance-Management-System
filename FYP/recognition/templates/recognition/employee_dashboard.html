@@ -64,18 +64,27 @@
         <h1 class="text-center section-title">Welcome, {{ user.username }}.</h1>
 
         <div class="row text-center">
-            <div class="col-md-12">
+            <div class="col-md-6">
                 <a href="{% url 'view-my-attendance-employee-login' %}">
                     <img src="{% static 'recognition/img/atte.png' %}" class="img-responsive" style="width:200px; height:200px;" />
+                </a>
+            </div>
+            <div class="col-md-6 text-center">
+                <a href="{% url 'calendar' %}">
+                    <img src="{% static 'recognition/img/calendar.png' %}" class="img-responsive" style="width:200px;height:200px;" />
                 </a>
             </div>
         </div>
 
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-md-6">
                 <h4>View My Attendance</h4>
             </div>
+            <div class="col-md-6" style="padding-left:25px;">
+                <h4 class="lgn">Shift Calendar</h4>
+            </div>
         </div>
+
 
         {% if messages %}
             {% for message in messages %}
