@@ -42,19 +42,19 @@
         <div class="card-body">
             <h2>Today's Statistics</h2>
             <div class="row justify-content-center mt-4">
-                <div class="card bg-success text-white text-center mx-3" style="width: 18rem;">
+                <div class="card bg-success text-white text-center mx-3" style="width: 14rem;">
                     <div class="card-body">
                         <h5 class="card-title"><b>Total Number Of Employees</b></h5>
                         <p class="card-text display-4"><b>{{ total_num_of_emp }}</b></p>
                     </div>
                 </div>
-                <div class="card bg-danger text-white text-center mx-3" style="width: 18rem;">
+                <div class="card bg-danger text-white text-center mx-3" style="width: 14rem;">
                     <div class="card-body">
                         <h5 class="card-title"><b>Employees Present Today</b></h5>
                         <p class="card-text display-4"><b>{{ emp_present_today }}</b></p>
                     </div>
                 </div>
-                <div class="card bg-danger text-white text-center mx-3" style="width: 18rem;">
+                <div class="card bg-danger text-white text-center mx-3" style="width: 28rem;">
                     <img class="card-img-top" src="{% static 'recognition/img/attendance_graphs/present_today/1.png' %}" alt="Number of employees present each day">
                 </div>
             </div>
@@ -68,7 +68,7 @@
                     <h2>Last Week</h2>
                     <div class="card mb-4">
                         <img class="card-img-top" src="{% static 'recognition/img/attendance_graphs/last_week/1.png' %}" alt="Number of employees present each day">
-                        <div class="card-body text-center">
+                        <div class="text-center">
                             <p class="card-text">Number of employees present each day</p>
                         </div>
                     </div>
@@ -77,8 +77,30 @@
                     <h2>This Week</h2>
                     <div class="card mb-4">
                         <img class="card-img-top" src="{% static 'recognition/img/attendance_graphs/this_week/1.png' %}" alt="Number of employees present each day">
-                        <div class="card-body text-center">
+                        <div class="text-center">
                             <p class="card-text">Number of employees present each day</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h2>Last Month</h2>
+                    <div class="card mb-4">
+                        <img class="card-img-top" src="{% static 'recognition/img/attendance_graphs/last_month/1.png' %}" alt="Number of employees present each week">
+                        <div class="text-center">
+                            <p class="card-text">Number of employees present each week</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h2>This Month</h2>
+                    <div class="card mb-4">
+                        <img class="card-img-top" src="{% static 'recognition/img/attendance_graphs/this_month/1.png' %}" alt="Number of employees present each week">
+                        <div class="text-center">
+                            <p class="card-text">Number of employees present each week</p>
                         </div>
                     </div>
                 </div>

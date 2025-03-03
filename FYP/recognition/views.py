@@ -389,12 +389,12 @@ def plot_employees_presence():
 
     labels = 'Present', 'Not Present'
     sizes = [present_count, non_present_count]
-    colors = ['#4CAF50', '#FFC107']  # Updated colors for a modern look
+    colors = ['#4CAF50', '#F44336']  # Updated colors for a modern look
     explode = (0.1, 0)  # "Explode" the first slice for emphasis
 
     # Set up figure and adjust layout
     plt.figure(figsize=(10, 8))
-    rcParams.update({'font.size': 16})  # Standardize font size
+    rcParams.update({'font.size': 14})  # Standardize font size
 
     # Create the pie chart with new attributes
     patches, texts, autotexts = plt.pie(sizes, explode=explode, colors=colors, autopct='%1.1f%%', pctdistance=0.85, shadow=False, startangle=90)
@@ -402,7 +402,7 @@ def plot_employees_presence():
     # Customize the design of autotexts and texts
     for text in autotexts:
         text.set_color('black')  # Enhance readability with a darker color
-        text.set_fontsize(18)  # Larger font size for percentage labels
+        text.set_fontsize(24)  # Larger font size for percentage labels
     
     # Draw a circle at the center of pie to create a donut-like appearance
     centre_circle = plt.Circle((0,0),0.70,fc='white')
@@ -413,96 +413,181 @@ def plot_employees_presence():
 
     # Add a legend, title, and save the figure
     plt.legend(patches, labels, loc='best')  # Use a legend instead of labels on the slices
-
+    plt.title('Employee Present on ' + str(datetime.date.today()), fontsize=32)  # Set title with a larger font size
     plt.savefig('./recognition/static/recognition/img/attendance_graphs/present_today/1.png', dpi=300)
     plt.close()
 
 #used	
 def this_week_emp_count_vs_date():
-	today=datetime.date.today()
-	some_day_last_week=today-datetime.timedelta(days=7)
-	monday_of_last_week=some_day_last_week-  datetime.timedelta(days=(some_day_last_week.isocalendar()[2] - 1))
-	monday_of_this_week = monday_of_last_week + datetime.timedelta(days=7)
-	qs=Present.objects.filter(date__gte=monday_of_this_week).filter(date__lte=today)
-	str_dates=[]
-	emp_count=[]
-	str_dates_all=[]
-	emp_cnt_all=[]
-	cnt=0
+    today = datetime.date.today()
+    some_day_last_week = today - datetime.timedelta(days=7)
+    monday_of_last_week = some_day_last_week - datetime.timedelta(days=(some_day_last_week.isocalendar()[2] - 1))
+    monday_of_this_week = monday_of_last_week + datetime.timedelta(days=7)
+    qs = Present.objects.filter(date__gte=monday_of_this_week, date__lte=today)
+    
+    str_dates = []
+    emp_count = []
+    str_dates_all = []
+    emp_cnt_all = []
+    cnt = 0
 
+    for obj in qs:
+        date = obj.date
+        formatted_date = date.strftime('%d-%m')  # Format date to day-month
+        str_dates.append(formatted_date)
+        daily_qs = Present.objects.filter(date=date).filter(present=True)
+        emp_count.append(len(daily_qs))
 
-	for obj in qs:
-		date=obj.date
-		str_dates.append(str(date))
-		qs=Present.objects.filter(date=date).filter(present=True)
-		emp_count.append(len(qs))
+    while cnt < 7:
+        date = monday_of_this_week + datetime.timedelta(days=cnt)
+        formatted_date = date.strftime('%d-%m')
+        str_dates_all.append(formatted_date)
+        if formatted_date in str_dates:
+            idx = str_dates.index(formatted_date)
+            emp_cnt_all.append(emp_count[idx])
+        else:
+            emp_cnt_all.append(0)
+        cnt += 1
 
-
-	while(cnt<5):
-
-		date=str(monday_of_this_week+datetime.timedelta(days=cnt))
-		cnt+=1
-		str_dates_all.append(date)
-		if(str_dates.count(date))>0:
-			idx=str_dates.index(date)
-
-			emp_cnt_all.append(emp_count[idx])
-		else:
-			emp_cnt_all.append(0)
-
-
-	df=pd.DataFrame()
-	df["date"]=str_dates_all
-	df["Number of employees"]=emp_cnt_all
-	
-	
-	sns.lineplot(data=df,x='date',y='Number of employees')
-	plt.savefig('./recognition/static/recognition/img/attendance_graphs/this_week/1.png')
-	plt.close()
+    df = pd.DataFrame({
+        "date": str_dates_all,
+        "Number of employees": emp_cnt_all
+    })
+    
+    sns.lineplot(data=df, x='date', y='Number of employees')
+    plt.tight_layout()
+    plt.savefig('./recognition/static/recognition/img/attendance_graphs/this_week/1.png')
+    plt.close()
 
 
 #used
 def last_week_emp_count_vs_date():
-	today=datetime.date.today()
-	some_day_last_week=today-datetime.timedelta(days=7)
-	monday_of_last_week=some_day_last_week-  datetime.timedelta(days=(some_day_last_week.isocalendar()[2] - 1))
-	monday_of_this_week = monday_of_last_week + datetime.timedelta(days=7)
-	qs=Present.objects.filter(date__gte=monday_of_last_week).filter(date__lt=monday_of_this_week)
-	str_dates=[]
-	emp_count=[]
+    today = datetime.date.today()
+    some_day_last_week = today - datetime.timedelta(days=7)
+    monday_of_last_week = some_day_last_week - datetime.timedelta(days=(some_day_last_week.isocalendar()[2] - 1))
+    monday_of_this_week = monday_of_last_week + datetime.timedelta(days=7)
+    qs = Present.objects.filter(date__gte=monday_of_last_week).filter(date__lt=monday_of_this_week)
+    
+    str_dates = []
+    emp_count = []
 
+    str_dates_all = []
+    emp_cnt_all = []
+    cnt = 0
+    
+    for obj in qs:
+        date = obj.date
+        formatted_date = date.strftime('%d-%m')  # Format to show day and month
+        str_dates.append(formatted_date)
+        day_qs = Present.objects.filter(date=date).filter(present=True)
+        emp_count.append(len(day_qs))
 
-	str_dates_all=[]
-	emp_cnt_all=[]
-	cnt=0
-	
-	
-	for obj in qs:
-		date=obj.date
-		str_dates.append(str(date))
-		qs=Present.objects.filter(date=date).filter(present=True)
-		emp_count.append(len(qs))
-	while(cnt<5):
-		date=str(monday_of_last_week+datetime.timedelta(days=cnt))
-		cnt+=1
-		str_dates_all.append(date)
-		if(str_dates.count(date))>0:
-			idx=str_dates.index(date)
-			emp_cnt_all.append(emp_count[idx])
-			
-		else:
-			emp_cnt_all.append(0)
+    while cnt < 7:  # Ensure it covers the whole week
+        date = monday_of_last_week + datetime.timedelta(days=cnt)
+        formatted_date = date.strftime('%d-%m')
+        str_dates_all.append(formatted_date)
+        if formatted_date in str_dates:
+            idx = str_dates.index(formatted_date)
+            emp_cnt_all.append(emp_count[idx])
+        else:
+            emp_cnt_all.append(0)
+        cnt += 1
 
+    df = pd.DataFrame({
+        "date": str_dates_all,
+        "Number of employees": emp_cnt_all
+    })
+    
+    sns.lineplot(data=df, x='date', y='Number of employees')
+    plt.tight_layout()
+    plt.savefig('./recognition/static/recognition/img/attendance_graphs/last_week/1.png')
+    plt.close()
 
-	df=pd.DataFrame()
-	df["date"]=str_dates_all
-	df["emp_count"]=emp_cnt_all
-	
-	
-	sns.lineplot(data=df,x='date',y='emp_count')
-	plt.savefig('./recognition/static/recognition/img/attendance_graphs/last_week/1.png')
-	plt.close()
+def this_month_emp_count_vs_date():
+    today = datetime.date.today()
+    first_day_of_this_month = today.replace(day=1)
+    last_day_of_this_month = today.replace(day=28) + datetime.timedelta(days=4)  # ensure it covers the end of the month
+    last_day_of_this_month = last_day_of_this_month - datetime.timedelta(days=last_day_of_this_month.day)
 
+    qs = Present.objects.filter(date__range=[first_day_of_this_month, last_day_of_this_month]).exclude(status='A')
+    
+    # Initialize dictionary to store attendance counts per "labelled" week
+    weekly_counts = {1: 0, 2: 0, 3: 0, 4: 0}
+    
+    # Calculate the total number of days in the month
+    total_days = (last_day_of_this_month - first_day_of_this_month).days + 1
+
+    # Loop through each day of the month, assign each day to a week from 1 to 4
+    for i in range(total_days):
+        day = first_day_of_this_month + datetime.timedelta(days=i)
+        week_of_month = (i // 7) + 1  # Determine week number by dividing day number by 7
+        if week_of_month > 4:
+            week_of_month = 4  # Assign all days after the 28th to week 4
+
+        # Filter records for each specific day
+        daily_records = qs.filter(date=day)
+        weekly_counts[week_of_month] += daily_records.count()
+
+    # Prepare data for plotting
+    weeks = [f"Week {week}" for week in weekly_counts.keys()]
+    counts = [weekly_counts[week] for week in weekly_counts.keys()]
+
+    plt.figure(figsize=(10, 6))  # Example dimensions in inches (width, height)
+
+    df = pd.DataFrame({
+        "Week": weeks,
+        "Number of employees": counts
+    })
+
+    sns.lineplot(data=df, x='Week', y='Number of employees')
+    plt.ylabel('Number of Employees')
+    plt.xlabel('Week of the Month')
+    plt.tight_layout()
+    plt.savefig('./recognition/static/recognition/img/attendance_graphs/this_month/1.png')
+    plt.close()
+    
+def last_month_emp_count_vs_date():
+    today = datetime.date.today()
+    first_day_of_this_month = today.replace(day=1)
+    first_day_of_last_month = (first_day_of_this_month - datetime.timedelta(days=1)).replace(day=1)
+    last_day_of_last_month = first_day_of_this_month - datetime.timedelta(days=1)
+
+    qs = Present.objects.filter(date__range=[first_day_of_last_month, last_day_of_last_month]).exclude(status='A')
+    
+    # Initialize dictionary to store attendance counts per "labelled" week
+    weekly_counts = {1: 0, 2: 0, 3: 0, 4: 0}
+
+    # Calculate the total number of days in the month
+    total_days = (last_day_of_last_month - first_day_of_last_month).days + 1
+
+    # Loop through each day of the month, assign each day to a week from 1 to 4
+    for i in range(total_days):
+        day = first_day_of_last_month + datetime.timedelta(days=i)
+        week_of_month = (i // 7) + 1  # Determine week number by dividing day number by 7
+        if week_of_month > 4:
+            week_of_month = 4  # Assign all days after the 28th to week 4
+
+        # Filter records for each specific day
+        daily_records = qs.filter(date=day)
+        weekly_counts[week_of_month] += daily_records.count()
+
+    # Prepare data for plotting
+    weeks = [f"Week {week}" for week in weekly_counts.keys()]
+    counts = [weekly_counts[week] for week in weekly_counts.keys()]
+
+    plt.figure(figsize=(10, 6))  # Example dimensions in inches (width, height)
+
+    df = pd.DataFrame({
+        "Week": weeks,
+        "Number of employees": counts
+    })
+
+    sns.lineplot(data=df, x='Week', y='Number of employees')
+    plt.ylabel('Number of Employees')
+    plt.xlabel('Week of the Month')
+    plt.tight_layout()
+    plt.savefig('./recognition/static/recognition/img/attendance_graphs/last_month/1.png')
+    plt.close()
 
 # Create your views here.
 def home(request):
@@ -861,6 +946,8 @@ def view_attendance_home(request):
 	plot_employees_presence()
 	this_week_emp_count_vs_date()
 	last_week_emp_count_vs_date()
+	this_month_emp_count_vs_date()
+	last_month_emp_count_vs_date()
 	return render(request,"recognition/view_attendance_home.html", {'total_num_of_emp' : total_num_of_emp, 'emp_present_today': emp_present_today})
 
 @login_required

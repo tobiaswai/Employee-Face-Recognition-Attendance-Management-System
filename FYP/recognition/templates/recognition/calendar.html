@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@latest/main.min.css" rel="stylesheet">
     <style>
+        h1 {
+            text-align: center; /* Ensures the heading is centered */
+            color: #333; /* Sets a dark gray color for the text */
+            font-family: 'Arial', sans-serif; /* Uses Arial font for the heading */
+        }
         .fc-event-title, .fc-event-title-container {
             white-space: normal; /* Allows text to wrap */
         }
@@ -15,13 +20,32 @@
         .fc-event-title-container {
             color: black; /* Set text color to black */
         }
-        
+        #link-container {
+            text-align: right; /* Aligns content to the right */
+            margin-bottom: 10px; /* Adds space below the link */
+        }
+        a.button-style {
+            display: inline-block; /* Allows width and padding to be adjusted */
+            padding: 10px 20px; /* Padding inside the button */
+            background-color: #007BFF; /* Bootstrap primary blue */
+            color: white; /* White text color */
+            text-decoration: none; /* Removes underline from the link */
+            border-radius: 5px; /* Rounded corners for the button */
+            transition: background-color 0.3s, transform 0.2s; /* Smooth background color and transform transitions */
+        }
+        a.button-style:hover, a.button-style:focus {
+            background-color: #0056b3; /* Darker blue on hover/focus */
+            transform: translateY(-2px); /* Slight raise effect on hover/focus */
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@latest/main.min.js"></script>
 </head>
 <body>
-    <h1 style="text-align: center;">Shift Calendar</h1>
-    <div id="calendar"></div>
+    <h1 id="shiftCalendar">Shift Calendar</h1>
+    <div id="link-container">
+        <a href="{% url 'dashboard' %}" class="button-style">Back to Dashboard</a>
+    </div>
+        <div id="calendar"></div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');

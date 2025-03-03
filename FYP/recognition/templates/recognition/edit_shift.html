@@ -1,7 +1,7 @@
 
 {% block content %}
 <style>
-    /* Basic styling for the form container */
+    /* Basic styling for the form */
     .form-container {
         max-width: 600px;
         margin: 20px auto;
@@ -25,15 +25,6 @@
 
     .form-row .input-field {
         flex: 1; /* Take up the remaining space */
-        display: flex;
-        flex-direction: column;
-    }
-
-    input, select, textarea {
-        width: 100%; /* Ensures full width */
-        padding: 8px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
     }
 
     button, .link-button {
@@ -50,10 +41,9 @@
         text-decoration: none; /* Removes underline from links styled as buttons */
     }
 
-    button:hover, .link-button:hover {
+    button:hover {
         background-color: #0056b3;
     }
-
     .link-button {
         background-color: #6c757d; /* Different color for less priority action */
     }
