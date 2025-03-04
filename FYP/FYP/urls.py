@@ -36,7 +36,9 @@ urlpatterns = [
     path('mark_your_attendance', recog_views.mark_your_attendance ,name='mark-your-attendance'),
     path('mark_your_attendance_out', recog_views.mark_your_attendance_out ,name='mark-your-attendance-out'),
     path('view_attendance_home', recog_views.view_attendance_home ,name='view-attendance-home'),
-       
+    path('export-attendance-csv/', recog_views.export_employee_attendance_csv, name='export_employee_attendance_csv'),
+    path('export-attendance-csv/', recog_views.export_date_attendance_csv, name='export_date_attendance_csv'),
+    
     path('view_attendance_date', recog_views.view_attendance_date ,name='view-attendance-date'),
     path('view_attendance_employee', recog_views.view_attendance_employee ,name='view-attendance-employee'),
     path('view_my_attendance', recog_views.view_my_attendance_employee_login ,name='view-my-attendance-employee-login'),

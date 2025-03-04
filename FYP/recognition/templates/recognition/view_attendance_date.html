@@ -44,7 +44,8 @@
                 {{ form|crispy }}
             </fieldset>
             <div class="form-group">
-                <button class="btn btn-outline-info" type="submit">Submit</button>
+                <button class="btn btn-outline-info" type="submit" style="margin-right: 10px;">Submit</button>
+                <button class="btn btn-outline-info" type="submit" name="export_csv">Export to CSV</button>
             </div>
         </form>
     </div>
@@ -55,6 +56,7 @@
             <tr>
                 <th scope="col">Date</th>
                 <th scope="col">Employee</th>
+                <th scope="col">Shift type</th>
                 <th scope="col">Status</th>
                 <th scope="col">Time in</th>
                 <th scope="col">Time out</th>
@@ -66,6 +68,7 @@
             <tr {% if item.status == 'L' %}style="color: red;"{% elif item.status == 'E' %}style="color: orange;"{% endif %}>
                 <td>{{ item.date }}</td>
                 <td>{{ item.user.username }}</td>
+                <td>{{ item.user_shift.get_shift_type_display|default:"-"}}</td>
                 <td>{{ item.status }}</td>
                 <td>{{ item.time_in|default:"-" }}</td>
                 <td>{{ item.time_out|default:"-" }}</td>

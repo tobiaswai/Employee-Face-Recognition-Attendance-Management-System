@@ -7,12 +7,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Attendance Dashboard</title>
-
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 </head>
 <body>
-
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <a class="navbar-brand" href="{% url 'view-attendance-home' %}">Attendance Dashboard</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,7 +42,8 @@
                 {{ form|crispy }}
             </fieldset>
             <div class="form-group">
-                <button class="btn btn-outline-info" type="submit">Submit</button>
+                <button class="btn btn-outline-info" type="submit" style="margin-right: 10px;">Submit</button>
+                <button class="btn btn-outline-info" type="submit" name="export_csv">Export to CSV</button>
             </div>
         </form>
     </div>
@@ -55,6 +54,7 @@
             <tr>
                 <th scope="col">Date</th>
                 <th scope="col">Employee</th>
+                <th scope="col">Shift type</th>
                 <th scope="col">Status</th>
                 <th scope="col">Time in</th>
                 <th scope="col">Time out</th>
@@ -66,6 +66,7 @@
             <tr {% if item.status == 'L' %}style="color: red;"{% elif item.status == 'E' %}style="color: orange;"{% endif %}>
                 <td>{{ item.date }}</td>
                 <td>{{ item.user.username }}</td>
+                <td>{{ item.user_shift.get_shift_type_display }}</td>
                 <td>{{ item.status }}</td>
                 <td>{{ item.time_in|default:"-" }}</td>
                 <td>{{ item.time_out|default:"-" }}</td>
@@ -96,6 +97,5 @@
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-
 </body>
 </html>

@@ -38,7 +38,7 @@ from django.db.models import Count
 import matplotlib.pyplot as plt
 from pandas.plotting import register_matplotlib_converters
 from matplotlib import rcParams
-import math
+import math, csv
 
 mpl.use('Agg')
 
@@ -255,8 +255,8 @@ def hours_vs_date_given_employee(present_qs, time_qs, admin=True):
 
     for obj in qs:
         date = obj.date
-        user_shift = Shift.objects.filter(user=obj.user).first()
-        if not user_shift:
+        obj.user_shift = Shift.objects.filter(user=obj.user).first()
+        if not obj.user_shift:
             print(f"No shift assigned for user {obj.user}")
             continue
         
@@ -268,7 +268,7 @@ def hours_vs_date_given_employee(present_qs, time_qs, admin=True):
         obj.time_out = times_out.last().time if times_out.exists() else None
 
         if obj.time_in:
-            obj.shift_start_time = user_shift.start_time
+            obj.shift_start_time = obj.user_shift.start_time
             if obj.time_in.time() > obj.shift_start_time:
                 obj.status = 'L'  
             else:
@@ -280,7 +280,7 @@ def hours_vs_date_given_employee(present_qs, time_qs, admin=True):
             to = obj.time_out
             hours = (to - ti).total_seconds() / 3600
             obj.hours = hours
-            obj.shift_end_time = user_shift.end_time
+            obj.shift_end_time = obj.user_shift.end_time
             if obj.hours < 8 or obj.time_out.time() < obj.shift_end_time and obj.status != 'L':
                 obj.status = 'E' 
                 obj.save()
@@ -318,8 +318,10 @@ def hours_vs_employee_given_date(present_qs,time_qs):
 	df_username=[]
 	qs=present_qs
 
+
 	for obj in qs:
 		user=obj.user
+		obj.user_shift = Shift.objects.filter(user=obj.user).first()
 		times_in=time_qs.filter(user=user).filter(out=False)
 		times_out=time_qs.filter(user=user).filter(out=True)
 		times_all=time_qs.filter(user=user)
@@ -329,6 +331,12 @@ def hours_vs_employee_given_date(present_qs,time_qs):
 		obj.hours=0
 		if (len(times_in)>0):			
 			obj.time_in=times_in.first().time
+			obj.shift_start_time = obj.user_shift.start_time
+			if obj.time_in.time() > obj.shift_start_time:
+				obj.status = 'L'  
+			else:
+				obj.status = 'P' 
+			obj.save()
 		if (len(times_out)>0):
 			obj.time_out=times_out.last().time
 		if(obj.time_in is not None and obj.time_out is not None):
@@ -336,6 +344,9 @@ def hours_vs_employee_given_date(present_qs,time_qs):
 			to=obj.time_out
 			hours=((to-ti).total_seconds())/3600
 			obj.hours=hours
+			if obj.hours < 8 or obj.time_out.time() < obj.shift_end_time and obj.status != 'L':
+				obj.status = 'E' 
+				obj.save()
 		else:
 			obj.hours=0
 		(check,break_hourss)= check_validity_times(times_all)
@@ -356,10 +367,9 @@ def hours_vs_employee_given_date(present_qs,time_qs):
 	df = read_frame(qs)	
 	df['hours']=df_hours
 	df['employee']=df_username
-
+	df = df[df['hours'] != 0]
 
 	sns.barplot(data=df,x='employee',y='hours')
-	plt.xticks(rotation='vertical')
 	rcParams.update({'figure.autolayout': True})
 	plt.tight_layout()
 	plt.savefig('./recognition/static/recognition/img/attendance_graphs/hours_vs_employee/1.png')
@@ -968,6 +978,8 @@ def view_attendance_date(request):
 			present_qs=Present.objects.filter(date=date)
 			if(len(time_qs)>0 or len(present_qs)>0):
 				qs=hours_vs_employee_given_date(present_qs,time_qs)
+				if 'export_csv' in request.POST:
+					return export_date_attendance_csv(request, time_qs, present_qs, date)
 				return render(request,'recognition/view_attendance_date.html', {'form' : form,'qs' : qs })
 			else:
 				messages.warning(request, f'No records for selected date.')
@@ -979,46 +991,44 @@ def view_attendance_date(request):
 
 @login_required
 def view_attendance_employee(request):
-	if request.user.username!='admin':
-		return redirect('not-authorised')
-	time_qs=None
-	present_qs=None
-	qs=None
-	if request.method=='POST':
-		form=UsernameAndDateForm(request.POST)
-		if form.is_valid():
-			username=form.cleaned_data.get('username')
-			if username_present(username):
-				
-				u=User.objects.get(username=username)
-				
-				time_qs=Time.objects.filter(user=u)
-				present_qs=Present.objects.filter(user=u)
-				date_from=form.cleaned_data.get('date_from')
-				date_to=form.cleaned_data.get('date_to')
-				
-				if date_to < date_from:
-					messages.warning(request, f'Invalid date selection.')
-					return redirect('view-attendance-employee')
-				else:
-					
-					time_qs=time_qs.filter(date__gte=date_from).filter(date__lte=date_to).order_by('-date')
-					present_qs=present_qs.filter(date__gte=date_from).filter(date__lte=date_to).order_by('-date')
-					if (len(time_qs)>0 or len(present_qs)>0):
-						qs=hours_vs_date_given_employee(present_qs,time_qs,admin=True)
-						return render(request,'recognition/view_attendance_employee.html', {'form' : form, 'qs' :qs})
-					else:
-						#print("inside qs is None")
-						messages.warning(request, f'No records for selected duration.')
-						return redirect('view-attendance-employee')
-			else:
-				print("invalid username")
-				messages.warning(request, f'No such username found.')
-				return redirect('view-attendance-employee')
-	else:
-			form=UsernameAndDateForm()
-			return render(request,'recognition/view_attendance_employee.html', {'form' : form, 'qs' :qs})
+    if request.user.username != 'admin':
+        return redirect('not-authorised')
 
+    time_qs = None
+    present_qs = None
+    qs = None
+
+    if request.method == 'POST':
+        form = UsernameAndDateForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            if username_present(username):
+                u = User.objects.get(username=username)
+                time_qs = Time.objects.filter(user=u)
+                present_qs = Present.objects.filter(user=u)
+                date_from = form.cleaned_data.get('date_from')
+                date_to = form.cleaned_data.get('date_to')
+
+                if date_to < date_from:
+                    messages.warning(request, 'Invalid date selection.')
+                    return redirect('view-attendance-employee')
+                else:
+                    time_qs = time_qs.filter(date__gte=date_from).filter(date__lte=date_to).order_by('-date')
+                    present_qs = present_qs.filter(date__gte=date_from).filter(date__lte=date_to).order_by('-date')
+                    if len(time_qs) > 0 or len(present_qs) > 0:
+                        qs = hours_vs_date_given_employee(present_qs, time_qs, admin=True)
+                        if 'export_csv' in request.POST:
+                            return export_employee_attendance_csv(request, time_qs, present_qs, username)
+                        return render(request, 'recognition/view_attendance_employee.html', {'form': form, 'qs': qs})
+                    else:
+                        messages.warning(request, 'No records for selected duration.')
+                        return redirect('view-attendance-employee')
+            else:
+                messages.warning(request, 'No such username found.')
+                return redirect('view-attendance-employee')
+    else:
+        form = UsernameAndDateForm()
+    return render(request, 'recognition/view_attendance_employee.html', {'form': form, 'qs': qs})
 
 @login_required
 def view_my_attendance_employee_login(request):
@@ -1051,8 +1061,115 @@ def view_my_attendance_employee_login(request):
 		form=DateForm_2()
 		return render(request,'recognition/view_my_attendance_employee_login.html', {'form' : form, 'qs' :qs})
 
+def format_datetime(dt):
+    if dt:
+        return dt.strftime('%Y-%m-%d %H:%M:%S')
+    return ''
+
+def export_employee_attendance_csv(request, time_qs, present_qs, username):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{username}_attendance.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Date', 'Time In', 'Time Out', 'Hours', 'Status'])
+
+    for obj in present_qs:
+        date = obj.date
+        obj.user_shift = Shift.objects.filter(user=obj.user).first()
+        if not obj.user_shift:
+            print(f"No shift assigned for user {obj.user}")
+            continue
+
+        times_in = time_qs.filter(date=date, user=obj.user, out=False).order_by('time')
+        times_out = time_qs.filter(date=date, user=obj.user, out=True).order_by('time')
+        times_all = time_qs.filter(date=date, user=obj.user).order_by('time')
+
+        obj.time_in = times_in.first().time if times_in.exists() else None
+        obj.time_out = times_out.last().time if times_out.exists() else None
+
+        if obj.time_in:
+            obj.shift_start_time = obj.user_shift.start_time
+            if obj.time_in.time() > obj.shift_start_time:
+                obj.status = 'L'
+            else:
+                obj.status = 'P'
+            obj.save()
+
+        if obj.time_in and obj.time_out:
+            ti = obj.time_in
+            to = obj.time_out
+            hours = (to - ti).total_seconds() / 3600
+            obj.hours = hours
+            obj.shift_end_time = obj.user_shift.end_time
+            if obj.hours < 8 or obj.time_out.time() < obj.shift_end_time and obj.status != 'L':
+                obj.status = 'E'
+                obj.save()
+        else:
+            obj.hours = 0
+
+        writer.writerow([date, format_datetime(obj.time_in), format_datetime(obj.time_out), obj.hours, obj.status])
+
+    return response
+
+import csv
+from django.http import HttpResponse
+from datetime import datetime
+import pandas as pd
+
+def export_date_attendance_csv(request, time_qs, present_qs, date):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{date}-attendance.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Date', 'Employee Name', 'Time In', 'Time Out', 'Hours', 'Status'])
+
+    # Ensure the date is in the correct string format
+    if isinstance(date, datetime):
+        date_str = date.strftime('%Y-%m-%d')
+    else:
+        date_str = date
+
+    for obj in present_qs.filter(date=date_str):
+        obj.user_shift = Shift.objects.filter(user=obj.user).first()
+        if not obj.user_shift:
+            print(f"No shift assigned for user {obj.user}")
+            continue
+
+        employee_name = obj.user.username  # Assuming you have a method to get the full name
+
+        times_in = time_qs.filter(date=date_str, user=obj.user, out=False).order_by('time')
+        times_out = time_qs.filter(date=date_str, user=obj.user, out=True).order_by('time')
+        times_all = time_qs.filter(date=date_str, user=obj.user).order_by('time')
+
+        obj.time_in = times_in.first().time if times_in.exists() else None
+        obj.time_out = times_out.last().time if times_out.exists() else None
+
+        if obj.time_in:
+            obj.shift_start_time = obj.user_shift.start_time
+            if obj.time_in.time() > obj.shift_start_time:
+                obj.status = 'L'
+            else:
+                obj.status = 'P'
+            obj.save()
+
+        if obj.time_in and obj.time_out:
+            ti = obj.time_in
+            to = obj.time_out
+            hours = (to - ti).total_seconds() / 3600
+            obj.hours = hours
+            obj.shift_end_time = obj.user_shift.end_time
+            if obj.hours < 8 or obj.time_out.time() < obj.shift_end_time and obj.status != 'L':
+                obj.status = 'E'
+                obj.save()
+        else:
+            obj.hours = 0
+
+        writer.writerow([date_str, employee_name, format_datetime(obj.time_in), format_datetime(obj.time_out), obj.hours, obj.status])
+
+    return response
+
 def employee_list(request):
-    employees = User.objects.all().prefetch_related('shift_set')
+    employees = User.objects.all().prefetch_related('shift_set').order_by('shift')
     return render(request, 'recognition/employee_list.html', {'employees': employees})
 
 def employee_edit(request, id=None):

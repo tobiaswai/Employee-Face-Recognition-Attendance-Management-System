@@ -51,7 +51,7 @@
             <li>
                 {{ employee.username }} - {{ employee.email }}
                 {% for shift in employee.shift_set.all %}
-                    - Shift Type: {{ shift.get_shift_type_display }}
+                    - {{ shift.get_shift_type_display }}
                 {% empty %}
                     - No shift assigned
                 {% endfor %}
