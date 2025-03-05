@@ -4,7 +4,8 @@ from django.utils.dateparse import parse_time
 from django.http import JsonResponse, HttpResponse
 from django.contrib import messages
 from django.contrib.auth.models import User
-from datetime import timedelta, date
+import datetime as dt
+from datetime import timedelta, date, datetime
 from collections import defaultdict
 import cv2
 import dlib
@@ -28,7 +29,6 @@ from django.contrib.auth.decorators import login_required
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
-import datetime
 from django_pandas.io import read_frame
 from employee.models import Present, Time, Shift, ShiftCalendar
 import seaborn as sns
@@ -163,8 +163,8 @@ def vizualize_Data(embedded, targets,):
 
 
 def update_attendance_in_db_in(present):
-	today=datetime.date.today()
-	time=datetime.datetime.now()
+	today=dt.date.today()
+	time=dt.datetime.now()
 	for person in present:
 		user=User.objects.get(username=person)
 		try:
@@ -189,8 +189,8 @@ def update_attendance_in_db_in(present):
 
 
 def update_attendance_in_db_out(present):
-	today=datetime.date.today()
-	time=datetime.datetime.now()
+	today=dt.date.today()
+	time=dt.datetime.now()
 	for person in present:
 		user=User.objects.get(username=person)
 		if present[person]==True:
@@ -384,7 +384,7 @@ def total_number_employees():
 
 
 def employees_present_today():
-	today=datetime.date.today()
+	today=dt.date.today()
 	qs=Present.objects.filter(date=today).filter(present=True)
 	return len(qs)
 
@@ -423,16 +423,16 @@ def plot_employees_presence():
 
     # Add a legend, title, and save the figure
     plt.legend(patches, labels, loc='best')  # Use a legend instead of labels on the slices
-    plt.title('Employee Present on ' + str(datetime.date.today()), fontsize=32)  # Set title with a larger font size
+    plt.title('Employee Present on ' + str(dt.date.today()), fontsize=32)  # Set title with a larger font size
     plt.savefig('./recognition/static/recognition/img/attendance_graphs/present_today/1.png', dpi=300)
     plt.close()
 
 #used	
 def this_week_emp_count_vs_date():
-    today = datetime.date.today()
-    some_day_last_week = today - datetime.timedelta(days=7)
-    monday_of_last_week = some_day_last_week - datetime.timedelta(days=(some_day_last_week.isocalendar()[2] - 1))
-    monday_of_this_week = monday_of_last_week + datetime.timedelta(days=7)
+    today = dt.date.today()
+    some_day_last_week = today - dt.timedelta(days=7)
+    monday_of_last_week = some_day_last_week - dt.timedelta(days=(some_day_last_week.isocalendar()[2] - 1))
+    monday_of_this_week = monday_of_last_week + dt.timedelta(days=7)
     qs = Present.objects.filter(date__gte=monday_of_this_week, date__lte=today)
     
     str_dates = []
@@ -449,7 +449,7 @@ def this_week_emp_count_vs_date():
         emp_count.append(len(daily_qs))
 
     while cnt < 7:
-        date = monday_of_this_week + datetime.timedelta(days=cnt)
+        date = monday_of_this_week + dt.timedelta(days=cnt)
         formatted_date = date.strftime('%d-%m')
         str_dates_all.append(formatted_date)
         if formatted_date in str_dates:
@@ -472,10 +472,10 @@ def this_week_emp_count_vs_date():
 
 #used
 def last_week_emp_count_vs_date():
-    today = datetime.date.today()
-    some_day_last_week = today - datetime.timedelta(days=7)
-    monday_of_last_week = some_day_last_week - datetime.timedelta(days=(some_day_last_week.isocalendar()[2] - 1))
-    monday_of_this_week = monday_of_last_week + datetime.timedelta(days=7)
+    today = dt.date.today()
+    some_day_last_week = today - dt.timedelta(days=7)
+    monday_of_last_week = some_day_last_week - dt.timedelta(days=(some_day_last_week.isocalendar()[2] - 1))
+    monday_of_this_week = monday_of_last_week + dt.timedelta(days=7)
     qs = Present.objects.filter(date__gte=monday_of_last_week).filter(date__lt=monday_of_this_week)
     
     str_dates = []
@@ -493,7 +493,7 @@ def last_week_emp_count_vs_date():
         emp_count.append(len(day_qs))
 
     while cnt < 7:  # Ensure it covers the whole week
-        date = monday_of_last_week + datetime.timedelta(days=cnt)
+        date = monday_of_last_week + dt.timedelta(days=cnt)
         formatted_date = date.strftime('%d-%m')
         str_dates_all.append(formatted_date)
         if formatted_date in str_dates:
@@ -514,10 +514,10 @@ def last_week_emp_count_vs_date():
     plt.close()
 
 def this_month_emp_count_vs_date():
-    today = datetime.date.today()
+    today = dt.date.today()
     first_day_of_this_month = today.replace(day=1)
-    last_day_of_this_month = today.replace(day=28) + datetime.timedelta(days=4)  # ensure it covers the end of the month
-    last_day_of_this_month = last_day_of_this_month - datetime.timedelta(days=last_day_of_this_month.day)
+    last_day_of_this_month = today.replace(day=28) + dt.timedelta(days=4)  # ensure it covers the end of the month
+    last_day_of_this_month = last_day_of_this_month - dt.timedelta(days=last_day_of_this_month.day)
 
     qs = Present.objects.filter(date__range=[first_day_of_this_month, last_day_of_this_month]).exclude(status='A')
     
@@ -529,7 +529,7 @@ def this_month_emp_count_vs_date():
 
     # Loop through each day of the month, assign each day to a week from 1 to 4
     for i in range(total_days):
-        day = first_day_of_this_month + datetime.timedelta(days=i)
+        day = first_day_of_this_month + dt.timedelta(days=i)
         week_of_month = (i // 7) + 1  # Determine week number by dividing day number by 7
         if week_of_month > 4:
             week_of_month = 4  # Assign all days after the 28th to week 4
@@ -557,10 +557,10 @@ def this_month_emp_count_vs_date():
     plt.close()
     
 def last_month_emp_count_vs_date():
-    today = datetime.date.today()
+    today = dt.date.today()
     first_day_of_this_month = today.replace(day=1)
-    first_day_of_last_month = (first_day_of_this_month - datetime.timedelta(days=1)).replace(day=1)
-    last_day_of_last_month = first_day_of_this_month - datetime.timedelta(days=1)
+    first_day_of_last_month = (first_day_of_this_month - dt.timedelta(days=1)).replace(day=1)
+    last_day_of_last_month = first_day_of_this_month - dt.timedelta(days=1)
 
     qs = Present.objects.filter(date__range=[first_day_of_last_month, last_day_of_last_month]).exclude(status='A')
     
@@ -572,7 +572,7 @@ def last_month_emp_count_vs_date():
 
     # Loop through each day of the month, assign each day to a week from 1 to 4
     for i in range(total_days):
-        day = first_day_of_last_month + datetime.timedelta(days=i)
+        day = first_day_of_last_month + dt.timedelta(days=i)
         week_of_month = (i // 7) + 1  # Determine week number by dividing day number by 7
         if week_of_month > 4:
             week_of_month = 4  # Assign all days after the 28th to week 4
@@ -691,7 +691,7 @@ def mark_your_attendance(request):
 				else:
 				#if count[pred] == 4 and (time.time()-start) <= 1.5:
 					present[pred] = True
-					log_time[pred] = datetime.datetime.now()
+					log_time[pred] = dt.datetime.now()
 					count[pred] = count.get(pred,0) + 1
 					print(pred, present[pred], count[pred])
 				cv2.putText(frame, str(person_name)+ str(prob), (x+6,y+h-6), cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,255,0),1)
@@ -819,7 +819,7 @@ def mark_your_attendance_out(request):
 				else:
 				#if count[pred] == 4 and (time.time()-start) <= 1.5:
 					present[pred] = True
-					log_time[pred] = datetime.datetime.now()
+					log_time[pred] = dt.datetime.now()
 					count[pred] = count.get(pred,0) + 1
 					print(pred, present[pred], count[pred])
 				cv2.putText(frame, str(person_name)+ str(prob), (x+6,y+h-6), cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,255,0),1)
@@ -1251,7 +1251,7 @@ def add_shift(request):
     if date_str:
         try:
             # Parse the string to a date object (ensure the format matches the input)
-            initial_date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+            initial_date = dt.datetime.strptime(date_str, '%Y-%m-%d').date()
             initial_data['date'] = initial_date
         except ValueError:
             # Handle the error in case of an invalid date format
