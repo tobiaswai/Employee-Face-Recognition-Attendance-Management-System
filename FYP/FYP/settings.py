@@ -92,7 +92,11 @@ DATABASES = {
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 
+    'OPTIONS': {'min_length': 8},},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
 
@@ -122,6 +126,16 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 LOGIN_URL='login'
 LOGOUT_REDIRECT_URL = 'home'
-
-
 LOGIN_REDIRECT_URL='dashboard'
+
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ("'self'",)
+CSP_STYLE_SRC = ("'self'",)
+
+INSTALLED_APPS += ['axes']
+MIDDLEWARE += ['axes.middleware.AxesMiddleware']
+AXES_FAILURE_LIMIT = 10  # Number of attempts before blocking
+
+SECURE_BROWSER_XSS_FILTER = True  # Enables XSS protection in modern browsers
+SECURE_CONTENT_TYPE_NOSNIFF = True  # Prevents MIME type sniffing
+X_FRAME_OPTIONS = 'DENY'  # Prevents clickjacking attacks
