@@ -281,7 +281,7 @@ def hours_vs_date_given_employee(present_qs, time_qs, admin=True):
             hours = (to - ti).total_seconds() / 3600
             obj.hours = hours
             obj.shift_end_time = obj.user_shift.end_time
-            if obj.hours < 8 or obj.time_out.time() < obj.shift_end_time and obj.status != 'L':
+            if obj.hours < 8:
                 obj.status = 'E' 
                 obj.save()
         else:
@@ -297,6 +297,7 @@ def hours_vs_date_given_employee(present_qs, time_qs, admin=True):
     print(df)
     
     sns.barplot(data=df, x='date', y='hours')
+    plt.title('Number of hours worked each day')
     plt.xticks(rotation='vertical')
     rcParams.update({'figure.autolayout': True})
     plt.tight_layout()
@@ -344,7 +345,7 @@ def hours_vs_employee_given_date(present_qs,time_qs):
 			to=obj.time_out
 			hours=((to-ti).total_seconds())/3600
 			obj.hours=hours
-			if obj.hours < 8 or obj.time_out.time() < obj.shift_end_time and obj.status != 'L':
+			if obj.hours < 8:
 				obj.status = 'E' 
 				obj.save()
 		else:
@@ -371,6 +372,7 @@ def hours_vs_employee_given_date(present_qs,time_qs):
 
 	sns.barplot(data=df,x='employee',y='hours')
 	rcParams.update({'figure.autolayout': True})
+	plt.title('Number of hours worked each day')
 	plt.tight_layout()
 	plt.savefig('./recognition/static/recognition/img/attendance_graphs/hours_vs_employee/1.png')
 	plt.close()
@@ -465,6 +467,7 @@ def this_week_emp_count_vs_date():
     })
     
     sns.lineplot(data=df, x='date', y='Number of employees')
+    plt.title('Number of employees present each day')
     plt.tight_layout()
     plt.savefig('./recognition/static/recognition/img/attendance_graphs/this_week/1.png')
     plt.close()
@@ -509,6 +512,7 @@ def last_week_emp_count_vs_date():
     })
     
     sns.lineplot(data=df, x='date', y='Number of employees')
+    plt.title('Number of employees present each day')
     plt.tight_layout()
     plt.savefig('./recognition/static/recognition/img/attendance_graphs/last_week/1.png')
     plt.close()
@@ -552,6 +556,7 @@ def this_month_emp_count_vs_date():
     sns.lineplot(data=df, x='Week', y='Number of employees')
     plt.ylabel('Number of Employees')
     plt.xlabel('Week of the Month')
+    plt.title('Number of employees present each week')
     plt.tight_layout()
     plt.savefig('./recognition/static/recognition/img/attendance_graphs/this_month/1.png')
     plt.close()
@@ -595,6 +600,7 @@ def last_month_emp_count_vs_date():
     sns.lineplot(data=df, x='Week', y='Number of employees')
     plt.ylabel('Number of Employees')
     plt.xlabel('Week of the Month')
+    plt.title('Number of employees present each week')
     plt.tight_layout()
     plt.savefig('./recognition/static/recognition/img/attendance_graphs/last_month/1.png')
     plt.close()
@@ -1101,7 +1107,7 @@ def export_employee_attendance_csv(request, time_qs, present_qs, username):
             hours = (to - ti).total_seconds() / 3600
             obj.hours = hours
             obj.shift_end_time = obj.user_shift.end_time
-            if obj.hours < 8 or obj.time_out.time() < obj.shift_end_time and obj.status != 'L':
+            if obj.hours < 8:
                 obj.status = 'E'
                 obj.save()
         else:
@@ -1158,7 +1164,7 @@ def export_date_attendance_csv(request, time_qs, present_qs, date):
             hours = (to - ti).total_seconds() / 3600
             obj.hours = hours
             obj.shift_end_time = obj.user_shift.end_time
-            if obj.hours < 8 or obj.time_out.time() < obj.shift_end_time and obj.status != 'L':
+            if obj.hours < 8:
                 obj.status = 'E'
                 obj.save()
         else:
