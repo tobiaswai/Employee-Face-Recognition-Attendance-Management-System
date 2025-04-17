@@ -131,6 +131,13 @@ def create_dataset(username):
 	vs.stop()
 	# destroying all the windows
 	cv2.destroyAllWindows()
+	file_path = os.path.join(directory, '1.jpg')
+	if os.path.exists(file_path):
+		os.remove(file_path)
+		print(f"Deleted file: {file_path}")
+	else:
+		print(f"File not found: {file_path}")
+
 
 
 def predict(face_aligned,svc,threshold=0.7):
@@ -1196,10 +1203,12 @@ def employee_edit(request, id=None):
         if user_form.is_valid() and shift_form.is_valid():
             # Save user
             saved_user = user_form.save(commit=False)
+            saved_user.save()  # Explicitly save the user instance here
+
             # Save shift
             saved_shift = shift_form.save(commit=False)
-            saved_shift.user = saved_user
-            saved_shift.save()
+            saved_shift.user = saved_user  # Assign user to the shift
+            saved_shift.save()  # Save the shift instance
 
             return redirect('employee_list')
     else:

@@ -133,6 +133,13 @@ CSP_SCRIPT_SRC = ("'self'",)
 CSP_STYLE_SRC = ("'self'",)
 
 INSTALLED_APPS += ['axes']
+AUTHENTICATION_BACKENDS = [
+    # AxesBackend should be the first backend in the AUTHENTICATION_BACKENDS list.
+    'axes.backends.AxesBackend',
+
+    # Django ModelBackend is the default authentication backend.
+    'django.contrib.auth.backends.ModelBackend',
+]
 MIDDLEWARE += ['axes.middleware.AxesMiddleware']
 AXES_FAILURE_LIMIT = 10  # Number of attempts before blocking
 
